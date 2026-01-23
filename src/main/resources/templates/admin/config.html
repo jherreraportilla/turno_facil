@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <th:block th:replace="fragments/head :: favicons" />
+  <meta charset="UTF-8">
+  <title>Configuración – TurnoFácil</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
+  <link th:replace="fragments/navbar :: navbar-css">
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+  <style>
+    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+    .card { border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+    .card-header { background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 2rem; }
+    .btn-back { background: rgba(255,255,255,0.2); border: none; color: white; }
+    .btn-back:hover { background: rgba(255,255,255,0.3); }
+    .form-control, .form-select { border-radius: 12px; padding: 0.75rem 1rem; }
+    .btn-save { border-radius: 50px; padding: 0.75rem 3rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+<!-- NAVBAR -->
+<div th:replace="fragments/navbar :: navbar"></div>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+
+        <!-- CABECERA + BOTÓN VOLVER -->
+        <div class="card-header text-white">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h2 class="mb-1">Configuración del negocio</h2>
+              <p class="mb-0 opacity-90">Personaliza horarios, nombre y disponibilidad</p>
+            </div>
+            <a th:href="@{/admin/dashboard}" class="btn btn-back btn-lg">
+              <i class="bi bi-arrow-left me-2"></i>Volver al dashboard
+            </a>
+          </div>
+        </div>
+        <!-- MENSAJE DE ÉXITO -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          <strong th:text="${success}"></strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- MENSAJE DE ERROR GENERAL -->
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <strong th:text="${error}"></strong>
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card-body p-5">
+
+          <!-- MENSAJE DE ÉXITO -->
+          <div th:if="${param.updated}" class="alert alert-success text-center mb-4">
+            ¡Configuración guardada correctamente!
+          </div>
+
+          <form th:action="@{/admin/config}" th:object="${businessConfig}" method="post">
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Nombre del negocio</label>
+              <input type="text" class="form-control form-control-lg" th:field="*{businessName}" required>
+            </div>
+
+            <div class="row g-4 mb-4">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Hora de apertura</label>
+                <input type="time" class="form-control form-control-lg" th:field="*{openingTime}" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Hora de cierre</label>
+                <input type="time" class="form-control form-control-lg" th:field="*{closingTime}" required>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">Duración de cada turno</label>
+              <select class="form-select form-select-lg" th:field="*{slotDurationMinutes}">
+                <option value="15">15 minutos</option>
+                <option value="30" selected>30 minutos</option>
+                <option value="45">45 minutos</option>
+                <option value="60">60 minutos</option>
+                <option value="90">90 minutos</option>
+              </select>
+            </div>
+
+            <div class="mb-5">
+              <label class="form-label fw-bold">Días laborables</label>
+              <input type="text" class="form-control form-control-lg" th:field="*{workingDays}"
+                     placeholder="Ej: 1,2,3,4,5,6" required>
+              <small class="text-muted">1=Lunes, 2=Martes... separados por comas (sin espacios)</small>
+            </div>
+
+            <div class="text-center">
+              <button type="submit" class="btn btn-success btn-save btn-lg">
+                Guardar cambios
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

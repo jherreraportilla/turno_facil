@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <th:block th:replace="fragments/head :: favicons" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login – TurnoFácil</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      max-width: 440px;
+      width: 100%;
+      border-radius: none;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.35);
+    }
+    .login-header {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      padding: 3rem 2rem;
+      text-align: center;
+    }
+    .login-header h1 {
+      font-weight: 800;
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    .login-body {
+      padding: 3rem;
+      background: white;
+    }
+    .form-control {
+      border-radius: 16px;
+      padding: 0.9rem 1.2rem;
+      border: 2px solid #e2e8f0;
+      transition: all 0.3s;
+    }
+    .form-control:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    }
+    .btn-login {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      border: none;
+      border-radius: 50px;
+      padding: 1rem;
+      font-weight: bold;
+      font-size: 1.1rem;
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s;
+    }
+    .btn-login:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-header">
+    <h1>TurnoFácil</h1>
+    <p class="mt-2 opacity-90 fs-5">Accede a tu panel de gestión</p>
+  </div>
+
+  <div class="login-body">
+
+    <div th:if="${param.logout}" class="alert alert-info text-center mb-4">
+      <i class="bi bi-check-circle-fill me-2"></i>Has cerrado sesión correctamente
+    </div>
+    <div th:if="${param.registered}" class="alert alert-success text-center mb-4">
+      <i class="bi bi-check-circle-fill me-2"></i>¡Registro exitoso! Ya puedes iniciar sesión
+    </div>
+    <div th:if="${param.error}" class="alert alert-danger text-center mb-4">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>Email o contraseña incorrectos
+    </div>
+
+    <form th:action="@{/login}" method="post">
+      <div class="mb-4">
+        <label class="form-label fw-bold">Email</label>
+        <input type="email" name="username" class="form-control form-control-lg"
+               placeholder="tu@negocio.com" required autofocus>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label fw-bold">Contraseña</label>
+        <input type="password" name="password" class="form-control form-control-lg" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-login w-100">
+        Entrar
+      </button>
+    </form>
+
+    <div class="text-center mt-4">
+      <small class="text-muted">
+        ¿No tienes cuenta?
+        <a href="/register" class="fw-bold" style="color: #667eea;">
+          Regístrate gratis
+        </a>
+      </small>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
