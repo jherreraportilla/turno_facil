@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

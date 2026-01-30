@@ -52,4 +52,7 @@ public class BusinessConfig {
 
     @Column(name = "logo_url")
     private String logoUrl;
+
+    @Column(name = "RECEIVE_EMAIL_NOTIFICATIONS", nullable = false)
+    private boolean receiveEmailNotifications = true;
 }

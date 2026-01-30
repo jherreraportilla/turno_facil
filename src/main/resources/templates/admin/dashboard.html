@@ -1,207 +1,158 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
-    <th:block th:replace="fragments/head :: favicons" />
+    <th:block th:replace="~{fragments/head :: favicons}" />
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard – TurnoFácil</title>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
+
+    <!-- FullCalendar (v6 tiene CSS embebido en JS y locales incluidos) -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <link th:replace="fragments/navbar :: navbar-css">
-    <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .navbar-brand { font-weight: 800; font-size: 1.6rem; }
-        .avatar { width: 42px; height: 42px; background: #fff; color: #667eea; border-radius: 50%; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        .card { border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .card-header { background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 2rem; }
-        #calendar { height: 700px; padding: 20px; background: white; border-radius: 16px; }
-        .fc-button-primary { background: #667eea !important; border: none !important; }
-        .badge { font-size: 0.9em; padding: 0.6em 1em; }
 
-        /* Estilos mejorados para eventos del calendario */
-        .fc-event {
-          cursor: pointer;
-          border-radius: 4px;
-          padding: 2px 4px;
-          margin-bottom: 2px;
-          font-size: 0.85em;
-          font-weight: 500;
-        }
-        .fc-event:hover {
-          opacity: 0.8;
-          transform: scale(1.02);
-          transition: all 0.2s;
-        }
-        .fc-daygrid-event {
-          white-space: normal;
-        }
-        .fc-event-title {
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
+    <!-- CSRF Token para peticiones AJAX -->
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
 
-        /* Estilos de paginación y tabla */
-        .pagination-info { color: #6c757d; font-size: 0.9rem; }
-        .table-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
-        .search-box { max-width: 300px; min-width: 200px; }
-        tbody tr { cursor: pointer; transition: all 0.2s; }
-        tbody tr:hover { background-color: #f8f9fa; transform: scale(1.005); }
-
-        .sort-icon { opacity: 0.3; transition: opacity 0.2s; }
-        th[data-sortable]:hover .sort-icon { opacity: 0.6; }
-        th[data-sortable] { cursor: pointer; user-select: none; }
-        th[data-sortable].sorted .sort-icon { opacity: 1; color: #667eea; }
-
-        @media (max-width: 768px) {
-          .table-controls { flex-direction: column; align-items: stretch; }
-          .search-box { max-width: 100%; }
-        }
-    </style>
+    <!-- TurnoFácil Theme -->
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
 </head>
-<body>
+<body class="admin-page">
 
 <!-- NAVBAR -->
-<div th:replace="fragments/navbar :: navbar"></div>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container py-5">
-    <h2 class="text-white mb-4 fw-light">Bienvenido, <strong th:text="${businessConfig.businessName}">Negocio S.L.</strong></h2>
+<div class="container py-4">
+    <!-- Bienvenida -->
+    <h2 class="mb-4" style="color: var(--tf-text-primary);">
+        Bienvenido, <strong th:text="${businessConfig.businessName}">Negocio</strong>
+    </h2>
 
     <!-- ENLACE PÚBLICO -->
-    <div class="card mb-5 border-0" style="background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-link-45deg display-1 text-white mb-4"></i>
-            <h3 class="text-white fw-bold mb-3">Página pública de reservas</h3>
-            <p class="text-white opacity-90 mb-4 fs-5">
-                Comparte este enlace con tus clientes para que reserven online
-            </p>
-
-            <div class="input-group input-group-lg w-75 mx-auto mb-4">
-                <input type="text" class="form-control text-center fw-bold fs-5"
-                       th:value="@{|http://localhost:8080/public/book/${businessConfig.slug}|}"
-                       id="publicLink" readonly>
-                <button class="btn btn-light fw-bold" onclick="copyLink()">
-                    <i class="bi bi-clipboard me-2"></i>Copiar
-                </button>
-            </div>
-
-            <a th:href="@{|/public/book/${businessConfig.slug}|}"
-               target="_blank"
-               class="btn btn-light btn-lg px-5 fw-bold">
-                <i class="bi bi-box-arrow-up-right me-2"></i>Ver página pública
-            </a>
+    <div class="public-link-card mb-5">
+        <div class="icon">
+            <i class="bi bi-link-45deg"></i>
         </div>
+        <h3>Página pública de reservas</h3>
+        <p>Comparte este enlace con tus clientes para que reserven online</p>
+
+        <div class="input-group mb-3" style="max-width: 600px; margin: 0 auto;">
+            <input type="text" class="form-control public-link-input"
+                   th:value="${publicBookingUrl}"
+                   id="publicLink" readonly>
+            <button class="btn btn-admin-primary" onclick="copyLink()">
+                <i class="bi bi-clipboard me-2"></i>Copiar
+            </button>
+        </div>
+
+        <a th:href="@{|/public/book/${businessConfig.slug}|}"
+           target="_blank"
+           class="btn btn-admin-secondary">
+            <i class="bi bi-box-arrow-up-right me-2"></i>Ver página pública
+        </a>
     </div>
 
-    <!-- KPIs / ESTADÍSTICAS -->
+    <!-- KPIs -->
     <div class="row g-4 mb-5">
-        <!-- Turnos Hoy -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="kpi-card">
                 <div class="card-body text-center p-4">
-                    <div class="d-flex justify-content-center align-items-center mb-3">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-calendar-day text-primary fs-1"></i>
-                        </div>
+                    <div class="kpi-icon primary mx-auto mb-3">
+                        <i class="bi bi-calendar-day fs-2"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" th:text="${kpiTurnosHoy}">0</h3>
-                    <p class="text-muted mb-0">Turnos Hoy</p>
+                    <div class="kpi-value" th:text="${kpiTurnosHoy}">0</div>
+                    <div class="kpi-label">Turnos Hoy</div>
                 </div>
             </div>
         </div>
 
-        <!-- Turnos Esta Semana -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="kpi-card">
                 <div class="card-body text-center p-4">
-                    <div class="d-flex justify-content-center align-items-center mb-3">
-                        <div class="bg-info bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-calendar-week text-info fs-1"></i>
-                        </div>
+                    <div class="kpi-icon info mx-auto mb-3">
+                        <i class="bi bi-calendar-week fs-2"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" th:text="${kpiTurnosSemana}">0</h3>
-                    <p class="text-muted mb-0">Esta Semana</p>
+                    <div class="kpi-value" th:text="${kpiTurnosSemana}">0</div>
+                    <div class="kpi-label">Esta Semana</div>
                 </div>
             </div>
         </div>
 
-        <!-- Turnos Completados -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="kpi-card">
                 <div class="card-body text-center p-4">
-                    <div class="d-flex justify-content-center align-items-center mb-3">
-                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-check-circle text-success fs-1"></i>
-                        </div>
+                    <div class="kpi-icon success mx-auto mb-3">
+                        <i class="bi bi-check-circle fs-2"></i>
                     </div>
-                    <h3 class="fw-bold mb-1" th:text="${kpiCompletados}">0</h3>
-                    <p class="text-muted mb-0">Completados</p>
+                    <div class="kpi-value" th:text="${kpiCompletados}">0</div>
+                    <div class="kpi-label">Completados</div>
                 </div>
             </div>
         </div>
 
-        <!-- Tasa de No-Show -->
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="kpi-card">
                 <div class="card-body text-center p-4">
-                    <div class="d-flex justify-content-center align-items-center mb-3">
-                        <div class="bg-danger bg-opacity-10 rounded-circle p-3">
-                            <i class="bi bi-exclamation-triangle text-danger fs-1"></i>
-                        </div>
+                    <div class="kpi-icon danger mx-auto mb-3">
+                        <i class="bi bi-exclamation-triangle fs-2"></i>
                     </div>
-                    <h3 class="fw-bold mb-1">
+                    <div class="kpi-value">
                         <span th:text="${kpiTasaNoShow}">0</span>%
-                    </h3>
-                    <p class="text-muted mb-0">Tasa No-Show</p>
+                    </div>
+                    <div class="kpi-label">Tasa No-Show</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Estadísticas Adicionales (barra de progreso) -->
-    <div class="card mb-5 border-0 shadow-sm">
+    <!-- Resumen del Mes -->
+    <div class="admin-card mb-5">
         <div class="card-body p-4">
-            <h5 class="fw-bold mb-4">
-                <i class="bi bi-graph-up me-2"></i>
+            <h5 class="fw-bold mb-4" style="color: var(--tf-text-primary);">
+                <i class="bi bi-graph-up me-2" style="color: var(--tf-brand);"></i>
                 Resumen del Mes
             </h5>
 
-            <div class="row g-4">
+            <div class="row g-4 mb-4">
                 <div class="col-md-3 text-center">
                     <div class="mb-2">
-                        <i class="bi bi-calendar-check text-primary fs-3"></i>
+                        <i class="bi bi-calendar-check fs-3" style="color: var(--tf-brand);"></i>
                     </div>
-                    <h4 class="fw-bold text-primary mb-1" th:text="${kpiTurnosMes}">0</h4>
+                    <h4 class="fw-bold mb-1" style="color: var(--tf-brand);" th:text="${kpiTurnosMes}">0</h4>
                     <small class="text-muted">Total del Mes</small>
                 </div>
 
                 <div class="col-md-3 text-center">
                     <div class="mb-2">
-                        <i class="bi bi-hourglass-split text-warning fs-3"></i>
+                        <i class="bi bi-hourglass-split fs-3" style="color: var(--tf-warning);"></i>
                     </div>
-                    <h4 class="fw-bold text-warning mb-1" th:text="${kpiPendientes}">0</h4>
+                    <h4 class="fw-bold mb-1" style="color: var(--tf-warning);" th:text="${kpiPendientes}">0</h4>
                     <small class="text-muted">Pendientes</small>
                 </div>
 
                 <div class="col-md-3 text-center">
                     <div class="mb-2">
-                        <i class="bi bi-x-circle text-danger fs-3"></i>
+                        <i class="bi bi-x-circle fs-3" style="color: var(--tf-danger);"></i>
                     </div>
-                    <h4 class="fw-bold text-danger mb-1" th:text="${kpiCancelados}">0</h4>
+                    <h4 class="fw-bold mb-1" style="color: var(--tf-danger);" th:text="${kpiCancelados}">0</h4>
                     <small class="text-muted">Cancelados</small>
                 </div>
 
                 <div class="col-md-3 text-center">
                     <div class="mb-2">
-                        <i class="bi bi-person-x text-dark fs-3"></i>
+                        <i class="bi bi-person-x fs-3" style="color: var(--tf-text-secondary);"></i>
                     </div>
-                    <h4 class="fw-bold text-dark mb-1" th:text="${kpiNoShow}">0</h4>
+                    <h4 class="fw-bold mb-1" style="color: var(--tf-text-secondary);" th:text="${kpiNoShow}">0</h4>
                     <small class="text-muted">No se presentaron</small>
                 </div>
             </div>
 
-            <!-- Barra de progreso visual -->
-            <div class="mt-4">
+            <!-- Barra de progreso -->
+            <div>
                 <div class="d-flex justify-content-between mb-2">
                     <small class="text-muted">Estado de los turnos</small>
                     <small class="text-muted">
@@ -209,68 +160,106 @@
                         <span th:text="${kpiTurnosMes}">0</span> completados
                     </small>
                 </div>
-                <div class="progress" style="height: 25px;">
-                    <div class="progress-bar bg-success" role="progressbar"
-                         th:style="'width: ' + ${kpiTurnosMes > 0 ? (kpiCompletados * 100.0 / kpiTurnosMes) : 0} + '%'"
-                         th:attr="aria-valuenow=${kpiCompletados}, aria-valuemin=0, aria-valuemax=${kpiTurnosMes}">
-            <span th:if="${kpiTurnosMes > 0}"
-                  th:text="${#numbers.formatDecimal(kpiCompletados * 100.0 / kpiTurnosMes, 1, 1)} + '%'">0%</span>
+                <div class="admin-progress">
+                    <div class="progress-bar success" role="progressbar"
+                         th:style="'width: ' + ${kpiTurnosMes > 0 ? (kpiCompletados * 100.0 / kpiTurnosMes) : 0} + '%'">
+                        <span th:if="${kpiTurnosMes > 0}"
+                              th:text="${#numbers.formatDecimal(kpiCompletados * 100.0 / kpiTurnosMes, 1, 1)} + '%'">0%</span>
                     </div>
-                    <div class="progress-bar bg-warning" role="progressbar"
+                    <div class="progress-bar warning" role="progressbar"
                          th:style="'width: ' + ${kpiTurnosMes > 0 ? (kpiPendientes * 100.0 / kpiTurnosMes) : 0} + '%'">
                     </div>
-                    <div class="progress-bar bg-danger" role="progressbar"
+                    <div class="progress-bar danger" role="progressbar"
                          th:style="'width: ' + ${kpiTurnosMes > 0 ? (kpiCancelados * 100.0 / kpiTurnosMes) : 0} + '%'">
                     </div>
                 </div>
-                <div class="d-flex justify-content-between mt-2">
-                    <small>
-                        <span class="badge bg-success">Completados</span>
-                        <span class="badge bg-warning">Pendientes</span>
-                        <span class="badge bg-danger">Cancelados</span>
-                    </small>
+                <div class="d-flex gap-3 mt-2">
+                    <small><span class="status-badge confirmed">Completados</span></small>
+                    <small><span class="status-badge pending">Pendientes</span></small>
+                    <small><span class="status-badge cancelled">Cancelados</span></small>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- TURNOS DE HOY -->
-    <div class="card mb-5">
-        <div class="card-header">
-            <h4 class="mb-0 text-white">
+    <div class="admin-card mb-5">
+        <div class="admin-card-header">
+            <h4>
                 <i class="bi bi-calendar-day me-2"></i>
                 Turnos de hoy – <span th:text="${today}">2025-12-12</span>
             </h4>
         </div>
-        <div class="card-body bg-white">
-            <div th:if="${todayAppointments.isEmpty()}" class="text-center py-5 text-muted">
-                <i class="bi bi-calendar-check display-1"></i>
-                <p class="mt-3 fs-4">No tienes turnos hoy. ¡Día tranquilo!</p>
+        <div class="admin-card-body">
+            <div th:if="${todayAppointments.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-calendar-check display-1" style="color: var(--tf-text-tertiary);"></i>
+                <p class="mt-3 fs-5 text-muted">No tienes turnos hoy. ¡Día tranquilo!</p>
             </div>
 
             <div class="table-responsive" th:unless="${todayAppointments.isEmpty()}">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
+                <table class="admin-table">
+                    <thead>
                     <tr>
                         <th>Hora</th>
                         <th>Cliente</th>
                         <th>Teléfono</th>
                         <th>Notas</th>
                         <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="a : ${todayAppointments}">
+                    <tr th:each="a : ${todayAppointments}"
+                        th:attr="data-id=${a.id},
+                                 data-date=${a.date},
+                                 data-time=${a.time},
+                                 data-client=${a.clientName},
+                                 data-phone=${a.clientPhone},
+                                 data-email=${a.clientEmail ?: ''},
+                                 data-notes=${a.notes ?: ''},
+                                 data-status=${a.status != null ? a.status.name() : 'PENDING'}">
                         <td><strong th:text="${a.time}">10:00</strong></td>
                         <td th:text="${a.clientName}">Juan Pérez</td>
-                        <td th:text="${a.clientPhone}">+34 600 123 456</td>
-                        <td th:text="${a.notes ?: 'Sin notas'}">-</td>
                         <td>
-              <span class="badge rounded-pill px-4 py-2"
-                    th:class="${a.status?.badgeClass} ?: 'bg-secondary'"
-                    th:text="${a.status?.getDisplayName('es')} ?: 'Sin estado'">
-                Pendiente
-              </span>
+                            <a th:href="'https://wa.me/' + ${#strings.replace(a.clientPhone, ' ', '')?.replaceAll('[^0-9]', '')}"
+                               target="_blank" class="text-decoration-none" title="Enviar WhatsApp">
+                                <i class="bi bi-whatsapp text-success me-1"></i>
+                                <span th:text="${a.clientPhone}">+34 600 123 456</span>
+                            </a>
+                        </td>
+                        <td>
+                            <span th:text="${a.notes ?: 'Sin notas'}"
+                                  th:title="${a.notes}"
+                                  style="display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                -
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-badge"
+                                  th:classappend="${a.status?.name()?.toLowerCase() ?: 'pending'}"
+                                  th:text="${a.status?.getDisplayName('es')} ?: 'Pendiente'">
+                                Pendiente
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-success btn-sm quick-status-btn" title="Marcar completado"
+                                        th:data-id="${a.id}"
+                                        data-status="COMPLETED"
+                                        data-status-text="Completado">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm quick-status-btn" title="No se presentó"
+                                        th:data-id="${a.id}"
+                                        data-status="NO_SHOW"
+                                        data-status-text="No se presento">
+                                    <i class="bi bi-person-x"></i>
+                                </button>
+                                <button class="btn btn-admin-primary btn-sm" title="Ver detalles"
+                                        onclick="openAppointmentModal(this.closest('tr'))">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     </tbody>
@@ -279,79 +268,77 @@
         </div>
     </div>
 
-    <!-- TODOS LOS TURNOS CON PAGINACIÓN Y FILTROS -->
-    <div class="card mb-5">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h4 class="mb-0 text-white">
+    <!-- TODOS LOS TURNOS -->
+    <div class="admin-card mb-5">
+        <div class="admin-card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
                 <i class="bi bi-calendar3 me-2"></i>
                 Todos los turnos
             </h4>
             <span class="badge bg-light text-dark fs-6">
-        Total: <span id="totalBadge" th:text="${allAppointments.size()}">0</span>
-      </span>
+                Total: <span id="totalBadge" th:text="${allAppointments.size()}">0</span>
+            </span>
         </div>
-        <div class="card-body bg-white">
+        <div class="admin-card-body">
 
-            <!-- FILTROS AVANZADOS -->
-            <div class="card bg-light mb-4">
-                <div class="card-body">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small">
-                                <i class="bi bi-calendar-range me-1"></i>
-                                Fecha Inicio
-                            </label>
-                            <input type="date" class="form-control" id="filterStartDate">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small">
-                                <i class="bi bi-calendar-check me-1"></i>
-                                Fecha Fin
-                            </label>
-                            <input type="date" class="form-control" id="filterEndDate">
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label fw-bold small">
-                                <i class="bi bi-funnel me-1"></i>
-                                Estado
-                            </label>
-                            <select class="form-select" id="filterStatus">
-                                <option value="ALL">Todos los estados</option>
-                                <option value="PENDING">🟡 Pendiente</option>
-                                <option value="CONFIRMED">🟢 Confirmado</option>
-                                <option value="COMPLETED">⚪ Completado</option>
-                                <option value="CANCELLED">🔴 Cancelado</option>
-                                <option value="NO_SHOW">⚫ No se presentó</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-3">
-                            <button class="btn btn-primary w-100" onclick="applyFilters()">
-                                <i class="bi bi-filter me-2"></i>
-                                Aplicar Filtros
-                            </button>
-                        </div>
+            <!-- FILTROS -->
+            <div class="filters-card">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-calendar-range me-1"></i>
+                            Fecha Inicio
+                        </label>
+                        <input type="date" class="form-control" id="filterStartDate">
                     </div>
 
-                    <div class="row mt-3">
-                        <div class="col-12 d-flex gap-2">
-                            <button class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
-                                <i class="bi bi-x-circle me-1"></i>
-                                Limpiar Filtros
-                            </button>
-                            <button class="btn btn-success btn-sm" onclick="exportToExcel()">
-                                <i class="bi bi-file-earmark-excel me-1"></i>
-                                Exportar a Excel
-                            </button>
-                        </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-calendar-check me-1"></i>
+                            Fecha Fin
+                        </label>
+                        <input type="date" class="form-control" id="filterEndDate">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-funnel me-1"></i>
+                            Estado
+                        </label>
+                        <select class="form-select" id="filterStatus">
+                            <option value="ALL">Todos los estados</option>
+                            <option value="PENDING">Pendiente</option>
+                            <option value="CONFIRMED">Confirmado</option>
+                            <option value="COMPLETED">Completado</option>
+                            <option value="CANCELLED">Cancelado</option>
+                            <option value="NO_SHOW">No se presentó</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <button class="btn btn-admin-primary w-100" onclick="applyFilters()">
+                            <i class="bi bi-filter me-2"></i>
+                            Aplicar Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-12 d-flex gap-2">
+                        <button class="btn btn-admin-secondary btn-sm" onclick="clearFilters()">
+                            <i class="bi bi-x-circle me-1"></i>
+                            Limpiar Filtros
+                        </button>
+                        <button class="btn btn-admin-success btn-sm" onclick="exportToExcel()">
+                            <i class="bi bi-file-earmark-excel me-1"></i>
+                            Exportar a Excel
+                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- Controles de tabla -->
-            <div class="table-controls">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
                 <div class="d-flex align-items-center gap-2">
                     <label class="mb-0 text-muted small">Mostrar</label>
                     <select class="form-select form-select-sm" id="pageSize" style="width: auto;">
@@ -359,30 +346,29 @@
                         <option value="10" selected>10</option>
                         <option value="25">25</option>
                         <option value="50">50</option>
-                        <option value="100">100</option>
                     </select>
                     <label class="mb-0 text-muted small">registros</label>
                 </div>
 
-                <div class="search-box">
+                <div style="max-width: 300px;">
                     <div class="input-group">
-            <span class="input-group-text bg-white border-end-0">
-              <i class="bi bi-search"></i>
-            </span>
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
                         <input type="text" class="form-control border-start-0" id="searchInput"
-                               placeholder="Buscar por nombre, teléfono, fecha...">
+                               placeholder="Buscar...">
                     </div>
                 </div>
             </div>
 
-            <div th:if="${allAppointments.isEmpty()}" class="text-center py-5 text-muted">
-                <i class="bi bi-calendar-x display-1"></i>
-                <p class="mt-3 fs-4">No tienes turnos registrados todavía</p>
+            <div th:if="${allAppointments.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-calendar-x display-1" style="color: var(--tf-text-tertiary);"></i>
+                <p class="mt-3 fs-5 text-muted">No tienes turnos registrados todavía</p>
             </div>
 
             <div class="table-responsive" th:unless="${allAppointments.isEmpty()}">
-                <table class="table table-hover align-middle" id="appointmentsTable">
-                    <thead class="table-light">
+                <table class="admin-table" id="appointmentsTable">
+                    <thead>
                     <tr>
                         <th data-sortable="date" class="sorted">
                             Fecha <i class="bi bi-arrow-down sort-icon"></i>
@@ -402,33 +388,33 @@
                     <tbody id="appointments-body">
                     <tr th:each="a : ${allAppointments}"
                         th:attr="data-id=${a.id},
-                       data-date=${a.date},
-                       data-time=${a.time},
-                       data-client=${a.clientName},
-                       data-phone=${a.clientPhone},
-                       data-email=${a.clientEmail ?: ''},
-                       data-notes=${a.notes ?: ''},
-                       data-status=${a.status != null ? a.status.name() : 'PENDING'}">
+                                 data-date=${a.date},
+                                 data-time=${a.time},
+                                 data-client=${a.clientName},
+                                 data-phone=${a.clientPhone},
+                                 data-email=${a.clientEmail ?: ''},
+                                 data-notes=${a.notes ?: ''},
+                                 data-status=${a.status != null ? a.status.name() : 'PENDING'}">
                         <td><strong th:text="${a.date}">2025-12-12</strong></td>
                         <td><strong th:text="${a.time}">10:00</strong></td>
                         <td th:text="${a.clientName}">Juan Pérez</td>
                         <td th:text="${a.clientPhone}">+34 600 123 456</td>
                         <td>
-              <span th:text="${a.notes ?: 'Sin notas'}"
-                    th:title="${a.notes}"
-                    style="display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                -
-              </span>
+                            <span th:text="${a.notes ?: 'Sin notas'}"
+                                  th:title="${a.notes}"
+                                  style="display: inline-block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                -
+                            </span>
                         </td>
                         <td>
-              <span class="badge rounded-pill px-3 py-2"
-                    th:class="${a.status?.badgeClass} ?: 'bg-secondary'"
-                    th:text="${a.status?.getDisplayName('es')} ?: 'Sin estado'">
-                Pendiente
-              </span>
+                            <span class="status-badge"
+                                  th:classappend="${a.status?.name()?.toLowerCase() ?: 'pending'}"
+                                  th:text="${a.status?.getDisplayName('es')} ?: 'Pendiente'">
+                                Pendiente
+                            </span>
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-primary" onclick="openAppointmentModal(this.closest('tr'))">
+                            <button class="btn btn-admin-primary btn-sm" onclick="openAppointmentModal(this.closest('tr'))">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
                         </td>
@@ -439,124 +425,103 @@
 
             <!-- Paginación -->
             <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3" id="paginationContainer">
-                <div class="pagination-info">
+                <div class="text-muted small">
                     Mostrando <strong><span id="showingFrom">1</span></strong> a <strong><span id="showingTo">10</span></strong>
                     de <strong><span id="totalRecords">0</span></strong> registros
-                    <span id="filteredInfo" style="display: none;" class="text-muted">
-            (filtrados de <span id="totalOriginal">0</span> registros totales)
-          </span>
+                    <span id="filteredInfo" style="display: none;">
+                        (filtrados de <span id="totalOriginal">0</span> totales)
+                    </span>
                 </div>
                 <nav>
-                    <ul class="pagination mb-0" id="pagination">
-                        <!-- Generado dinámicamente -->
-                    </ul>
+                    <ul class="pagination admin-pagination mb-0" id="pagination"></ul>
                 </nav>
             </div>
         </div>
     </div>
 
     <!-- CALENDARIO -->
-    <div class="card">
-        <div class="card-header">
-            <h4 class="mb-0 text-white">
+    <div class="admin-card">
+        <div class="admin-card-header">
+            <h4>
                 <i class="bi bi-calendar-week me-2"></i>
                 Calendario de turnos
             </h4>
         </div>
-        <div class="card-body bg-white">
-            <div id="calendar"></div>
+        <div class="admin-card-body">
+            <div class="calendar-container">
+                <div id="calendar"></div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- MODAL DE DETALLES/EDICIÓN DE APPOINTMENT -->
-<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+<!-- MODAL -->
+<div class="modal fade admin-modal" id="appointmentModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-gradient" style="background: linear-gradient(45deg, #667eea, #764ba2);">
-                <h5 class="modal-title text-white" id="appointmentModalLabel">
+            <div class="modal-header">
+                <h5 class="modal-title">
                     <i class="bi bi-calendar-check me-2"></i>
                     Detalles del Turno
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4">
+            <div class="modal-body">
                 <form id="appointmentForm">
                     <input type="hidden" id="appointmentId">
 
                     <div class="row g-4">
-                        <!-- Información del Cliente -->
                         <div class="col-12">
-                            <h6 class="text-primary fw-bold mb-3">
+                            <h6 class="fw-bold mb-3" style="color: var(--tf-brand);">
                                 <i class="bi bi-person-circle me-2"></i>
                                 Información del Cliente
                             </h6>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-person me-1"></i>
-                                Cliente
-                            </label>
+                            <label class="form-label fw-bold">Cliente</label>
                             <input type="text" class="form-control" id="clientName" readonly>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-telephone me-1"></i>
-                                Teléfono
-                            </label>
+                            <label class="form-label fw-bold">Teléfono</label>
                             <div class="input-group">
                                 <input type="text" class="form-control" id="clientPhone" readonly>
-                                <a href="#" id="whatsappLink" class="btn btn-success" target="_blank">
+                                <a href="#" id="whatsappLink" class="btn btn-admin-success" target="_blank">
                                     <i class="bi bi-whatsapp"></i>
                                 </a>
                             </div>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-envelope me-1"></i>
-                                Email
-                            </label>
+                            <label class="form-label fw-bold">Email</label>
                             <input type="email" class="form-control" id="clientEmail" readonly>
                         </div>
 
-                        <!-- Información del Turno -->
                         <div class="col-12 mt-4">
-                            <h6 class="text-primary fw-bold mb-3">
+                            <h6 class="fw-bold mb-3" style="color: var(--tf-brand);">
                                 <i class="bi bi-calendar3 me-2"></i>
                                 Información del Turno
                             </h6>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-calendar-event me-1"></i>
-                                Fecha
-                            </label>
+                            <label class="form-label fw-bold">Fecha</label>
                             <input type="text" class="form-control" id="appointmentDate" readonly>
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-clock me-1"></i>
-                                Hora
-                            </label>
+                            <label class="form-label fw-bold">Hora</label>
                             <input type="text" class="form-control" id="appointmentTime" readonly>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-bold">
-                                <i class="bi bi-sticky me-1"></i>
-                                Notas
-                            </label>
+                            <label class="form-label fw-bold">Notas</label>
                             <textarea class="form-control" id="appointmentNotes" rows="3" readonly></textarea>
                         </div>
 
-                        <!-- Estado -->
                         <div class="col-12 mt-4">
-                            <h6 class="text-primary fw-bold mb-3">
+                            <h6 class="fw-bold mb-3" style="color: var(--tf-brand);">
                                 <i class="bi bi-flag me-2"></i>
                                 Estado del Turno
                             </h6>
@@ -565,24 +530,47 @@
                         <div class="col-12">
                             <label class="form-label fw-bold">Cambiar estado</label>
                             <select class="form-select form-select-lg" id="appointmentStatus">
-                                <option value="PENDING">🟡 Pendiente</option>
-                                <option value="CONFIRMED">🟢 Confirmado</option>
-                                <option value="COMPLETED">⚪ Completado</option>
-                                <option value="CANCELLED">🔴 Cancelado</option>
-                                <option value="NO_SHOW">⚫ No se presentó</option>
+                                <option value="PENDING">Pendiente</option>
+                                <option value="CONFIRMED">Confirmado</option>
+                                <option value="COMPLETED">Completado</option>
+                                <option value="CANCELLED">Cancelado</option>
+                                <option value="NO_SHOW">No se presentó</option>
                             </select>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="modal-footer bg-light">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>
-                    Cerrar
+            <div class="modal-footer">
+                <button type="button" class="btn btn-admin-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cerrar
                 </button>
-                <button type="button" class="btn btn-primary" onclick="saveAppointmentStatus()">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Guardar Cambios
+                <button type="button" class="btn btn-admin-primary" onclick="saveAppointmentStatus()">
+                    <i class="bi bi-check-circle me-2"></i>Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Cambio de Estado -->
+<div class="modal fade admin-modal" id="statusConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title">
+                    <i class="bi bi-arrow-repeat me-2"></i>
+                    Cambiar Estado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p class="mb-1">¿Cambiar el estado del turno a</p>
+                <p class="fw-bold fs-5" id="statusConfirmText"></p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-admin-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-admin-primary" id="confirmStatusBtn">
+                    <i class="bi bi-check-circle me-2"></i>Confirmar
                 </button>
             </div>
         </div>
@@ -590,7 +578,6 @@
 </div>
 
 <script th:inline="javascript">
-    // Variables globales para paginación
     let allRows = [];
     let filteredRows = [];
     let currentPage = 1;
@@ -599,529 +586,460 @@
     let sortDirection = 'desc';
 
     document.addEventListener('DOMContentLoaded', function () {
-      // Inicializar tabla
-      initTable();
-
-      // Inicializar calendario
-      initCalendar();
+        initTable();
+        initCalendar();
     });
 
     function initTable() {
-      const tbody = document.getElementById('appointments-body');
-      if (!tbody) return;
+        const tbody = document.getElementById('appointments-body');
+        if (!tbody) return;
 
-      allRows = Array.from(tbody.querySelectorAll('tr'));
-      filteredRows = [...allRows];
+        allRows = Array.from(tbody.querySelectorAll('tr'));
+        filteredRows = [...allRows];
 
-      // Event listeners
-      document.getElementById('pageSize').addEventListener('change', function() {
-        pageSize = parseInt(this.value);
-        currentPage = 1;
-        updateTable();
-      });
-
-      document.getElementById('searchInput').addEventListener('input', function() {
-        applyAllFilters();
-      });
-
-      // Ordenamiento al hacer click en headers
-      document.querySelectorAll('th[data-sortable]').forEach(th => {
-        th.addEventListener('click', function() {
-          const column = this.getAttribute('data-sortable');
-
-          if (sortColumn === column) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-          } else {
-            sortColumn = column;
-            sortDirection = 'asc';
-          }
-
-          // Actualizar estilos de headers
-          document.querySelectorAll('th[data-sortable]').forEach(h => {
-            h.classList.remove('sorted');
-            const icon = h.querySelector('.sort-icon');
-            icon.className = 'bi bi-arrow-down-up sort-icon';
-          });
-
-          this.classList.add('sorted');
-          const icon = this.querySelector('.sort-icon');
-          icon.className = sortDirection === 'asc' ? 'bi bi-arrow-up sort-icon' : 'bi bi-arrow-down sort-icon';
-
-          sortData(column, sortDirection);
-          updateTable();
+        document.getElementById('pageSize').addEventListener('change', function() {
+            pageSize = parseInt(this.value);
+            currentPage = 1;
+            updateTable();
         });
-      });
 
-      // Ordenar por defecto y mostrar
-      sortData('date', 'desc');
-      updateTable();
+        document.getElementById('searchInput').addEventListener('input', function() {
+            applyAllFilters();
+        });
+
+        document.querySelectorAll('th[data-sortable]').forEach(th => {
+            th.addEventListener('click', function() {
+                const column = this.getAttribute('data-sortable');
+
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
+
+                document.querySelectorAll('th[data-sortable]').forEach(h => {
+                    h.classList.remove('sorted');
+                    const icon = h.querySelector('.sort-icon');
+                    icon.className = 'bi bi-arrow-down-up sort-icon';
+                });
+
+                this.classList.add('sorted');
+                const icon = this.querySelector('.sort-icon');
+                icon.className = sortDirection === 'asc' ? 'bi bi-arrow-up sort-icon' : 'bi bi-arrow-down sort-icon';
+
+                sortData(column, sortDirection);
+                updateTable();
+            });
+        });
+
+        sortData('date', 'desc');
+        updateTable();
     }
 
     function applyAllFilters() {
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-      const startDate = document.getElementById('filterStartDate').value;
-      const endDate = document.getElementById('filterEndDate').value;
-      const status = document.getElementById('filterStatus').value;
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+        const startDate = document.getElementById('filterStartDate').value;
+        const endDate = document.getElementById('filterEndDate').value;
+        const status = document.getElementById('filterStatus').value;
 
-      filteredRows = allRows.filter(row => {
-        // Filtro de búsqueda
-        const client = (row.dataset.client || '').toLowerCase();
-        const phone = (row.dataset.phone || '').toLowerCase();
-        const date = (row.dataset.date || '').toLowerCase();
-        const time = (row.dataset.time || '').toLowerCase();
+        filteredRows = allRows.filter(row => {
+            const client = (row.dataset.client || '').toLowerCase();
+            const phone = (row.dataset.phone || '').toLowerCase();
+            const date = (row.dataset.date || '').toLowerCase();
+            const time = (row.dataset.time || '').toLowerCase();
 
-        const matchesSearch = searchTerm === '' ||
-                             client.includes(searchTerm) ||
-                             phone.includes(searchTerm) ||
-                             date.includes(searchTerm) ||
-                             time.includes(searchTerm);
+            const matchesSearch = searchTerm === '' ||
+                client.includes(searchTerm) ||
+                phone.includes(searchTerm) ||
+                date.includes(searchTerm) ||
+                time.includes(searchTerm);
 
-        // Filtro de fecha inicio
-        const matchesStartDate = !startDate || row.dataset.date >= startDate;
+            const matchesStartDate = !startDate || row.dataset.date >= startDate;
+            const matchesEndDate = !endDate || row.dataset.date <= endDate;
+            const matchesStatus = status === 'ALL' || row.dataset.status === status;
 
-        // Filtro de fecha fin
-        const matchesEndDate = !endDate || row.dataset.date <= endDate;
+            return matchesSearch && matchesStartDate && matchesEndDate && matchesStatus;
+        });
 
-        // Filtro de estado
-        const matchesStatus = status === 'ALL' || row.dataset.status === status;
+        document.getElementById('totalBadge').textContent = filteredRows.length;
 
-        return matchesSearch && matchesStartDate && matchesEndDate && matchesStatus;
-      });
+        if (searchTerm || startDate || endDate || status !== 'ALL') {
+            document.getElementById('filteredInfo').style.display = 'inline';
+            document.getElementById('totalOriginal').textContent = allRows.length;
+        } else {
+            document.getElementById('filteredInfo').style.display = 'none';
+        }
 
-      // Actualizar badge de total
-      document.getElementById('totalBadge').textContent = filteredRows.length;
-
-      if (searchTerm || startDate || endDate || status !== 'ALL') {
-        document.getElementById('filteredInfo').style.display = 'inline';
-        document.getElementById('totalOriginal').textContent = allRows.length;
-      } else {
-        document.getElementById('filteredInfo').style.display = 'none';
-      }
-
-      currentPage = 1;
-      sortData(sortColumn, sortDirection);
-      updateTable();
+        currentPage = 1;
+        sortData(sortColumn, sortDirection);
+        updateTable();
     }
 
     function applyFilters() {
-      applyAllFilters();
-      showToast('Filtros aplicados correctamente', 'success');
+        applyAllFilters();
+        showToast('Filtros aplicados', 'success');
     }
 
     function clearFilters() {
-      document.getElementById('filterStartDate').value = '';
-      document.getElementById('filterEndDate').value = '';
-      document.getElementById('filterStatus').value = 'ALL';
-      document.getElementById('searchInput').value = '';
+        document.getElementById('filterStartDate').value = '';
+        document.getElementById('filterEndDate').value = '';
+        document.getElementById('filterStatus').value = 'ALL';
+        document.getElementById('searchInput').value = '';
 
-      filteredRows = [...allRows];
-      document.getElementById('totalBadge').textContent = allRows.length;
-      document.getElementById('filteredInfo').style.display = 'none';
+        filteredRows = [...allRows];
+        document.getElementById('totalBadge').textContent = allRows.length;
+        document.getElementById('filteredInfo').style.display = 'none';
 
-      currentPage = 1;
-      sortData(sortColumn, sortDirection);
-      updateTable();
-
-      showToast('Filtros limpiados', 'success');
+        currentPage = 1;
+        sortData(sortColumn, sortDirection);
+        updateTable();
+        showToast('Filtros limpiados', 'success');
     }
 
     function exportToExcel() {
-      const startDate = document.getElementById('filterStartDate').value;
-      const endDate = document.getElementById('filterEndDate').value;
-      const status = document.getElementById('filterStatus').value;
+        const startDate = document.getElementById('filterStartDate').value;
+        const endDate = document.getElementById('filterEndDate').value;
+        const status = document.getElementById('filterStatus').value;
 
-      let url = '/admin/appointments/export?';
-      const params = [];
+        let url = '/admin/appointments/export?';
+        const params = [];
+        if (startDate) params.push(`startDate=${startDate}`);
+        if (endDate) params.push(`endDate=${endDate}`);
+        if (status && status !== 'ALL') params.push(`status=${status}`);
+        url += params.join('&');
 
-      if (startDate) params.push(`startDate=${startDate}`);
-      if (endDate) params.push(`endDate=${endDate}`);
-      if (status && status !== 'ALL') params.push(`status=${status}`);
-
-      url += params.join('&');
-
-      showToast('Descargando Excel...', 'success');
-      window.location.href = url;
+        showToast('Descargando Excel...', 'success');
+        window.location.href = url;
     }
 
     function sortData(column, direction) {
-      filteredRows.sort((a, b) => {
-        let valA = a.dataset[column] || '';
-        let valB = b.dataset[column] || '';
-
-        // Convertir a minúsculas para comparación case-insensitive
-        if (typeof valA === 'string') valA = valA.toLowerCase();
-        if (typeof valB === 'string') valB = valB.toLowerCase();
-
-        if (direction === 'asc') {
-          return valA > valB ? 1 : valA < valB ? -1 : 0;
-        } else {
-          return valA < valB ? 1 : valA > valB ? -1 : 0;
-        }
-      });
+        filteredRows.sort((a, b) => {
+            let valA = a.dataset[column] || '';
+            let valB = b.dataset[column] || '';
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+            if (direction === 'asc') {
+                return valA > valB ? 1 : valA < valB ? -1 : 0;
+            } else {
+                return valA < valB ? 1 : valA > valB ? -1 : 0;
+            }
+        });
     }
 
     function updateTable() {
-      const tbody = document.getElementById('appointments-body');
-      const totalRecords = filteredRows.length;
-      const totalPages = Math.ceil(totalRecords / pageSize);
+        const tbody = document.getElementById('appointments-body');
+        const totalRecords = filteredRows.length;
+        const totalPages = Math.ceil(totalRecords / pageSize);
 
-      // Ajustar página actual si es necesario
-      if (currentPage > totalPages && totalPages > 0) {
-        currentPage = totalPages;
-      }
-      if (currentPage < 1) currentPage = 1;
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
 
-      const start = (currentPage - 1) * pageSize;
-      const end = start + pageSize;
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
 
-      // Limpiar tabla
-      tbody.innerHTML = '';
+        tbody.innerHTML = '';
+        const pageRows = filteredRows.slice(start, end);
 
-      // Agregar filas de la página actual
-      const pageRows = filteredRows.slice(start, end);
+        if (pageRows.length === 0 && totalRecords === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron resultados</td></tr>';
+        } else {
+            pageRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
+        }
 
-      if (pageRows.length === 0 && totalRecords === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No se encontraron resultados</td></tr>';
-      } else {
-        pageRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
-      }
+        document.getElementById('showingFrom').textContent = totalRecords > 0 ? start + 1 : 0;
+        document.getElementById('showingTo').textContent = Math.min(end, totalRecords);
+        document.getElementById('totalRecords').textContent = totalRecords;
 
-      // Actualizar info de paginación
-      document.getElementById('showingFrom').textContent = totalRecords > 0 ? start + 1 : 0;
-      document.getElementById('showingTo').textContent = Math.min(end, totalRecords);
-      document.getElementById('totalRecords').textContent = totalRecords;
-
-      // Generar botones de paginación
-      generatePagination(totalPages);
+        generatePagination(totalPages);
     }
 
     function generatePagination(totalPages) {
-      const pagination = document.getElementById('pagination');
-      pagination.innerHTML = '';
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+        if (totalPages <= 1) return;
 
-      if (totalPages <= 1) return;
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;"><i class="bi bi-chevron-left"></i></a>`;
+        pagination.appendChild(prevLi);
 
-      // Botón anterior
-      const prevLi = document.createElement('li');
-      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-      prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">
-        <i class="bi bi-chevron-left"></i>
-      </a>`;
-      pagination.appendChild(prevLi);
+        const maxButtons = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
 
-      // Botones de páginas
-      const maxButtons = 5;
-      let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-
-      if (endPage - startPage < maxButtons - 1) {
-        startPage = Math.max(1, endPage - maxButtons + 1);
-      }
-
-      // Primera página si no está visible
-      if (startPage > 1) {
-        const li = document.createElement('li');
-        li.className = 'page-item';
-        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(1); return false;">1</a>`;
-        pagination.appendChild(li);
-
-        if (startPage > 2) {
-          const dots = document.createElement('li');
-          dots.className = 'page-item disabled';
-          dots.innerHTML = `<span class="page-link">...</span>`;
-          pagination.appendChild(dots);
-        }
-      }
-
-      for (let i = startPage; i <= endPage; i++) {
-        const li = document.createElement('li');
-        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
-        pagination.appendChild(li);
-      }
-
-      // Última página si no está visible
-      if (endPage < totalPages) {
-        if (endPage < totalPages - 1) {
-          const dots = document.createElement('li');
-          dots.className = 'page-item disabled';
-          dots.innerHTML = `<span class="page-link">...</span>`;
-          pagination.appendChild(dots);
+        for (let i = startPage; i <= endPage; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+            pagination.appendChild(li);
         }
 
-        const li = document.createElement('li');
-        li.className = 'page-item';
-        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${totalPages}); return false;">${totalPages}</a>`;
-        pagination.appendChild(li);
-      }
-
-      // Botón siguiente
-      const nextLi = document.createElement('li');
-      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-      nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">
-        <i class="bi bi-chevron-right"></i>
-      </a>`;
-      pagination.appendChild(nextLi);
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;"><i class="bi bi-chevron-right"></i></a>`;
+        pagination.appendChild(nextLi);
     }
 
     function changePage(page) {
-      const totalPages = Math.ceil(filteredRows.length / pageSize);
-      if (page < 1 || page > totalPages) return;
-      currentPage = page;
-      updateTable();
-
-      // Scroll suave a la tabla
-      const table = document.getElementById('appointmentsTable');
-      if (table) {
-        table.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+        const totalPages = Math.ceil(filteredRows.length / pageSize);
+        if (page < 1 || page > totalPages) return;
+        currentPage = page;
+        updateTable();
     }
 
     function initCalendar() {
-      var calendarEl = document.getElementById('calendar');
-      var rawAppointments = [[${calendarEvents}]];
+        var calendarEl = document.getElementById('calendar');
+        if (!calendarEl) return;
 
-      console.log('Total appointments para calendario:', rawAppointments.length);
-      console.log('Primer appointment RAW:', rawAppointments[0]);
+        var rawAppointments = /*[[${calendarEvents}]]*/ [];
+        var rawBlockedEvents = /*[[${blockedEvents}]]*/ [];
 
-      var events = rawAppointments.map(a => {
-        const status = a.status;
-        let color = '#6c757d';
-        let displayName = 'Sin estado';
-
-        if (status) {
-          displayName = status.es || 'Sin estado';
-
-          switch (status.badgeClass) {
-            case 'bg-success':  color = '#28a745'; break;
-            case 'bg-warning':  color = '#ffc107'; break;
-            case 'bg-danger':   color = '#dc3545'; break;
-            case 'bg-dark':     color = '#343a40'; break;
-            case 'bg-secondary':color = '#6c757d'; break;
-            default:            color = '#6c757d';
-          }
-        }
-
-        // Las fechas y horas ya vienen como strings desde el controlador
-        const startDateTime = `${a.date}T${a.time}`;
-
-        const event = {
-          title: a.clientName + (a.notes ? " - " + a.notes.substring(0, 20) + (a.notes.length > 20 ? '...' : '') : ""),
-          start: startDateTime,
-          allDay: false,
-          backgroundColor: color,
-          borderColor: color,
-          textColor: status && status.badgeClass === 'bg-warning' ? '#000' : '#fff',
-          display: 'block',
-          extendedProps: {
-            phone: a.clientPhone,
-            status: displayName,
-            notes: a.notes || 'Sin notas'
-          }
-        };
-
-        console.log('Evento generado:', {
-          title: event.title,
-          start: event.start,
-          color: color
+        // Convertir turnos a eventos
+        var appointmentEvents = rawAppointments.map(a => {
+            const status = a.status;
+            let color = '#A0A9B0';
+            if (status) {
+                switch (status.badgeClass) {
+                    case 'bg-success': color = '#5A9367'; break;
+                    case 'bg-warning': color = '#C9A227'; break;
+                    case 'bg-danger': color = '#C45C4A'; break;
+                    case 'bg-dark': color = '#4A3F35'; break;
+                    default: color = '#A0A9B0';
+                }
+            }
+            return {
+                title: a.clientName,
+                start: a.date + 'T' + a.time,
+                allDay: false,
+                backgroundColor: color,
+                borderColor: color,
+                textColor: '#fff',
+                display: 'block',
+                extendedProps: {
+                    id: a.id,
+                    phone: a.clientPhone,
+                    email: a.clientEmail || '',
+                    status: status?.es || 'Sin estado',
+                    statusCode: a.statusCode || 'PENDING',
+                    notes: a.notes || '',
+                    date: a.date,
+                    time: a.time,
+                    isBlocked: false
+                }
+            };
         });
 
-        return event;
-      });
+        // Convertir bloqueos a eventos
+        var blockedEvents = rawBlockedEvents.flatMap(b => {
+            const events = [];
+            const startDate = new Date(b.startDate);
+            const endDate = new Date(b.endDate);
 
-      console.log('Total eventos generados:', events.length);
-      console.log('Ejemplo de evento completo:', events[0]);
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
 
-      const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        headerToolbar: {
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
-        locale: 'es',
-        events: events,
-        height: 'auto',
-        eventTimeFormat: {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
-        },
-        eventDisplay: 'block',
-        displayEventTime: true,
-        displayEventEnd: false,
-        eventClick: function(info) {
-          // Buscar la fila correspondiente en la tabla
-          const rows = document.querySelectorAll('#appointments-body tr');
-          const eventDate = info.event.start.toISOString().split('T')[0];
-          const eventTime = info.event.start.toTimeString().substring(0, 5);
-
-          for (let row of rows) {
-            if (row.dataset.date === eventDate && row.dataset.time === eventTime) {
-              openAppointmentModal(row);
-              return;
+                if (b.allDay) {
+                    events.push({
+                        title: b.title,
+                        start: dateStr,
+                        allDay: true,
+                        backgroundColor: b.color || '#6B7280',
+                        borderColor: b.color || '#6B7280',
+                        textColor: '#ffffff',
+                        display: 'background',
+                        extendedProps: { isBlocked: true, type: b.typeDisplay }
+                    });
+                } else if (b.startTime && b.endTime) {
+                    events.push({
+                        title: b.title,
+                        start: dateStr + 'T' + b.startTime,
+                        end: dateStr + 'T' + b.endTime,
+                        allDay: false,
+                        backgroundColor: b.color || '#6B7280',
+                        borderColor: b.color || '#6B7280',
+                        textColor: '#ffffff',
+                        display: 'block',
+                        extendedProps: { isBlocked: true, type: b.typeDisplay }
+                    });
+                }
             }
-          }
+            return events;
+        });
 
-          // Fallback: mostrar alerta simple si no se encuentra
-          const details = `${info.event.title}\n\n` +
-                         `📞 Teléfono: ${info.event.extendedProps.phone}\n` +
-                         `📌 Estado: ${info.event.extendedProps.status}\n` +
-                         `📝 Notas: ${info.event.extendedProps.notes}`;
-          alert(details);
-        },
-        eventDidMount: function(info) {
-          console.log('Evento montado en el DOM:', info.event.title, info.event.start);
-          info.el.title = `${info.event.title}\nHora: ${info.event.start.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'})}`;
-        }
-      });
+        // Combinar todos los eventos
+        var allEvents = [...appointmentEvents, ...blockedEvents];
 
-      console.log('Renderizando calendario...');
-      calendar.render();
-      console.log('Calendario renderizado. Total eventos en el calendario:', calendar.getEvents().length);
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dia' },
+            locale: 'es',
+            events: allEvents,
+            height: 'auto',
+            eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+            dayMaxEvents: 3,
+            moreLinkText: 'mas',
+            eventClick: function(info) {
+                const props = info.event.extendedProps;
+                if (props.isBlocked) {
+                    alert('Bloqueo: ' + info.event.title + ' (' + props.type + ')');
+                    return;
+                }
+                openCalendarModal(info.event.title, props);
+            }
+        });
+        calendar.render();
+    }
+
+    function openCalendarModal(clientName, props) {
+        document.getElementById('appointmentId').value = props.id || '';
+        document.getElementById('clientName').value = clientName;
+        document.getElementById('clientPhone').value = props.phone;
+        document.getElementById('clientEmail').value = props.email || '';
+        document.getElementById('appointmentDate').value = formatDateSpanish(props.date);
+        document.getElementById('appointmentTime').value = props.time;
+        document.getElementById('appointmentNotes').value = props.notes || 'Sin notas';
+        document.getElementById('appointmentStatus').value = props.statusCode || 'PENDING';
+
+        const cleanPhone = props.phone.replace(/\D/g, '');
+        document.getElementById('whatsappLink').href = 'https://wa.me/' + cleanPhone;
+
+        new bootstrap.Modal(document.getElementById('appointmentModal')).show();
+    }
+
+    function formatDateSpanish(dateStr) {
+        if (!dateStr) return '';
+        const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const day = parseInt(parts[2], 10);
+        const month = months[parseInt(parts[1], 10) - 1];
+        const year = parts[0];
+        return day + ' ' + month + ' ' + year;
     }
 
     function copyLink() {
-      const link = document.getElementById('publicLink');
-      link.select();
-      link.setSelectionRange(0, 99999); // Para móviles
-
-      navigator.clipboard.writeText(link.value).then(() => {
-        const btn = event.target.closest('button');
-        const original = btn.innerHTML;
-        btn.innerHTML = '<i class="bi bi-check-lg me-2"></i>¡Copiado!';
-        btn.classList.replace('btn-light', 'btn-success');
-
-        setTimeout(() => {
-          btn.innerHTML = original;
-          btn.classList.replace('btn-success', 'btn-light');
-        }, 2000);
-      });
-    }
-
-    // Abrir modal con los datos del appointment
-    function openAppointmentModal(row) {
-      const id = row.dataset.id;
-      const date = row.dataset.date;
-      const time = row.dataset.time;
-      const client = row.dataset.client;
-      const phone = row.dataset.phone;
-      const email = row.dataset.email || '';
-      const notes = row.dataset.notes || 'Sin notas';
-      const status = row.dataset.status;
-
-      console.log('Datos del appointment:', { id, date, time, client, phone, email, notes, status });
-
-      // Rellenar el modal
-      document.getElementById('appointmentId').value = id;
-      document.getElementById('clientName').value = client;
-      document.getElementById('clientPhone').value = phone;
-      document.getElementById('clientEmail').value = email;
-      document.getElementById('appointmentDate').value = date;
-      document.getElementById('appointmentTime').value = time;
-      document.getElementById('appointmentNotes').value = notes;
-
-      // Configurar el estado actual
-      const statusSelect = document.getElementById('appointmentStatus');
-      if (status && status !== 'null' && status !== 'undefined') {
-        // Convertir a mayúsculas por si acaso
-        const statusValue = status.toUpperCase();
-        statusSelect.value = statusValue;
-        console.log('Estado configurado:', statusValue);
-      } else {
-        statusSelect.value = 'PENDING';
-        console.log('Estado por defecto: PENDING');
-      }
-
-      // Configurar link de WhatsApp
-      const whatsappLink = document.getElementById('whatsappLink');
-      const cleanPhone = phone.replace(/\D/g, ''); // Quitar todo excepto números
-      whatsappLink.href = `https://wa.me/${cleanPhone}`;
-
-      // Abrir el modal
-      const modal = new bootstrap.Modal(document.getElementById('appointmentModal'));
-      modal.show();
-    }
-
-    // Guardar cambios de estado
-    async function saveAppointmentStatus() {
-      const id = document.getElementById('appointmentId').value;
-      const newStatus = document.getElementById('appointmentStatus').value;
-
-      try {
-        const response = await fetch(`/admin/appointments/${id}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: newStatus })
+        const link = document.getElementById('publicLink');
+        link.select();
+        navigator.clipboard.writeText(link.value).then(() => {
+            showToast('Enlace copiado', 'success');
         });
+    }
 
-        if (response.ok) {
-          // Cerrar modal
-          const modal = bootstrap.Modal.getInstance(document.getElementById('appointmentModal'));
-          modal.hide();
+    function openAppointmentModal(row) {
+        document.getElementById('appointmentId').value = row.dataset.id;
+        document.getElementById('clientName').value = row.dataset.client;
+        document.getElementById('clientPhone').value = row.dataset.phone;
+        document.getElementById('clientEmail').value = row.dataset.email || '';
+        document.getElementById('appointmentDate').value = row.dataset.date;
+        document.getElementById('appointmentTime').value = row.dataset.time;
+        document.getElementById('appointmentNotes').value = row.dataset.notes || 'Sin notas';
+        document.getElementById('appointmentStatus').value = row.dataset.status || 'PENDING';
 
-          // Mostrar mensaje de éxito
-          showToast('Estado actualizado correctamente', 'success');
+        const cleanPhone = row.dataset.phone.replace(/\D/g, '');
+        document.getElementById('whatsappLink').href = `https://wa.me/${cleanPhone}`;
 
-          // Recargar la página después de 1 segundo
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
-        } else {
-          showToast('Error al actualizar el estado', 'error');
+        new bootstrap.Modal(document.getElementById('appointmentModal')).show();
+    }
+
+    function getHeaders() {
+        const headers = { 'Content-Type': 'application/json' };
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+        if (csrfToken && csrfHeader) {
+            headers[csrfHeader] = csrfToken;
         }
-      } catch (error) {
-        console.error('Error:', error);
-        showToast('Error al actualizar el estado', 'error');
-      }
+        return headers;
     }
 
-    // Función auxiliar para mostrar toasts
+    // Variables para el modal de confirmación de estado
+    let pendingStatusChange = { id: null, status: null };
+
+    // Event delegation para botones de cambio rápido de estado
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.quick-status-btn');
+        if (btn) {
+            pendingStatusChange.id = btn.dataset.id;
+            pendingStatusChange.status = btn.dataset.status;
+            document.getElementById('statusConfirmText').textContent = btn.dataset.statusText + '?';
+            new bootstrap.Modal(document.getElementById('statusConfirmModal')).show();
+        }
+    });
+
+    // Confirmar cambio de estado
+    document.getElementById('confirmStatusBtn').addEventListener('click', async function() {
+        const { id, status } = pendingStatusChange;
+        if (!id || !status) return;
+
+        try {
+            const response = await fetch('/admin/appointments/' + id + '/status', {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify({ status: status })
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('statusConfirmModal')).hide();
+
+            if (response.ok) {
+                showToast('Estado actualizado', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } else {
+                showToast('Error al actualizar', 'error');
+            }
+        } catch (error) {
+            showToast('Error al actualizar', 'error');
+        }
+    });
+
+    async function saveAppointmentStatus() {
+        const id = document.getElementById('appointmentId').value;
+        const newStatus = document.getElementById('appointmentStatus').value;
+
+        if (!id) {
+            showToast('No se puede guardar sin ID', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch('/admin/appointments/' + id + '/status', {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
+                showToast('Estado actualizado', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast('Error al actualizar', 'error');
+            }
+        } catch (error) {
+            showToast('Error al actualizar', 'error');
+        }
+    }
+
     function showToast(message, type) {
-      const bgColor = type === 'success' ? '#28a745' : '#dc3545';
-      const icon = type === 'success' ? 'check-circle-fill' : 'x-circle-fill';
-
-      const toast = document.createElement('div');
-      toast.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${bgColor};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        z-index: 9999;
-        animation: slideIn 0.3s ease-out;
-      `;
-      toast.innerHTML = `<i class="bi bi-${icon} me-2"></i>${message}`;
-
-      document.body.appendChild(toast);
-
-      setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease-out';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
+        const toast = document.createElement('div');
+        toast.className = `admin-toast ${type}`;
+        toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'x-circle-fill'}"></i>${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
     }
-
-    // Animaciones CSS
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes slideIn {
-        from { transform: translateX(400px); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-      }
-      @keyframes slideOut {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(400px); opacity: 0; }
-      }
-    `;
-    document.head.appendChild(style);
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/notifications.js}"></script>
+
 </body>
 </html>

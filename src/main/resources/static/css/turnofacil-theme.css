@@ -1,0 +1,565 @@
+/* ========================================
+   TURNOFACIL - SISTEMA DE DISEÑO GLOBAL
+   Versión: 2.0 - Tema Elegante Dorado
+   ======================================== */
+
+/* ========================================
+   1. VARIABLES GLOBALES
+   ======================================== */
+:root {
+  /* === Colores de Fondo === */
+  --tf-bg-primary: #FFFEE1;
+  --tf-bg-secondary: #F3E9CF;
+  --tf-bg-tertiary: #E3D2AF;
+  --tf-bg-hover: #D9CEAF;
+  --tf-bg-active: #D4AF74;
+
+  /* === Colores de Texto === */
+  --tf-text-primary: #4A3F35;
+  --tf-text-secondary: #6B5D4D;
+  --tf-text-tertiary: #A0A9B0;
+  --tf-text-disabled: #BCB293;
+
+  /* === Colores de Marca === */
+  --tf-brand: #D4AF74;
+  --tf-brand-hover: #A98657;
+  --tf-brand-active: #8B6B42;
+  --tf-brand-light: #E3D2AF;
+  --tf-brand-dark: #A98657;
+
+  /* === Colores Semánticos === */
+  --tf-success: #5A9367;
+  --tf-success-hover: #4A7D56;
+  --tf-success-light: #E8F5E9;
+
+  --tf-info: #5B8DB8;
+  --tf-info-hover: #4A7A9F;
+  --tf-info-light: #E3F2FD;
+
+  --tf-warning: #C9A227;
+  --tf-warning-hover: #B08D1E;
+  --tf-warning-light: #FFF8E1;
+
+  --tf-danger: #C45C4A;
+  --tf-danger-hover: #A94A3A;
+  --tf-danger-light: #FFEBEE;
+
+  /* === Bordes y Separadores === */
+  --tf-border-color: #D8E0ED;
+  --tf-border-light: #E3D2AF;
+  --tf-border-dark: #B59974;
+  --tf-divider: #D9CEAF;
+
+  /* === Sombras (ajustadas para tema claro) === */
+  --tf-shadow-xs: 0 1px 2px rgba(169, 134, 87, 0.08);
+  --tf-shadow-sm: 0 2px 8px rgba(169, 134, 87, 0.12);
+  --tf-shadow-md: 0 4px 16px rgba(169, 134, 87, 0.15);
+  --tf-shadow-lg: 0 10px 40px rgba(169, 134, 87, 0.18);
+  --tf-shadow-xl: 0 20px 60px rgba(169, 134, 87, 0.22);
+  --tf-shadow-primary: 0 4px 12px rgba(212, 175, 116, 0.35);
+  --tf-shadow-success: 0 4px 12px rgba(90, 147, 103, 0.25);
+  --tf-shadow-danger: 0 4px 12px rgba(196, 92, 74, 0.25);
+
+  /* === Espaciado (sistema de 4px) === */
+  --tf-space-1: 4px;
+  --tf-space-2: 8px;
+  --tf-space-3: 12px;
+  --tf-space-4: 16px;
+  --tf-space-5: 20px;
+  --tf-space-6: 24px;
+  --tf-space-8: 32px;
+  --tf-space-10: 40px;
+  --tf-space-12: 48px;
+  --tf-space-16: 64px;
+
+  /* === Border Radius === */
+  --tf-radius-sm: 6px;
+  --tf-radius-md: 8px;
+  --tf-radius-lg: 12px;
+  --tf-radius-xl: 16px;
+  --tf-radius-2xl: 20px;
+  --tf-radius-full: 9999px;
+
+  /* === Transiciones === */
+  --tf-transition-fast: 0.15s ease;
+  --tf-transition-base: 0.2s ease;
+  --tf-transition-slow: 0.3s ease;
+  --tf-transition-slower: 0.4s ease;
+
+  /* === Z-Index === */
+  --tf-z-dropdown: 1000;
+  --tf-z-sticky: 1020;
+  --tf-z-fixed: 1030;
+  --tf-z-modal-backdrop: 1040;
+  --tf-z-modal: 1050;
+  --tf-z-popover: 1060;
+  --tf-z-tooltip: 1070;
+
+  /* === Tipografía === */
+  --tf-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --tf-font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+
+  --tf-font-size-xs: 0.75rem;      /* 12px */
+  --tf-font-size-sm: 0.875rem;     /* 14px */
+  --tf-font-size-base: 1rem;       /* 16px */
+  --tf-font-size-lg: 1.125rem;     /* 18px */
+  --tf-font-size-xl: 1.25rem;      /* 20px */
+  --tf-font-size-2xl: 1.5rem;      /* 24px */
+  --tf-font-size-3xl: 2rem;        /* 32px */
+  --tf-font-size-4xl: 2.5rem;      /* 40px */
+
+  --tf-font-weight-normal: 400;
+  --tf-font-weight-medium: 500;
+  --tf-font-weight-semibold: 600;
+  --tf-font-weight-bold: 700;
+  --tf-font-weight-extrabold: 800;
+
+  --tf-line-height-tight: 1.25;
+  --tf-line-height-normal: 1.5;
+  --tf-line-height-relaxed: 1.75;
+}
+
+/* ========================================
+   2. COMPONENTES - BOTONES
+   ======================================== */
+.tf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-3) var(--tf-space-6);
+  font-size: var(--tf-font-size-base);
+  font-weight: var(--tf-font-weight-semibold);
+  line-height: 1;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--tf-radius-md);
+  cursor: pointer;
+  transition: all var(--tf-transition-base);
+  outline: none;
+  user-select: none;
+}
+
+.tf-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Botón Primario */
+.tf-btn-primary {
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  color: white;
+  box-shadow: var(--tf-shadow-primary);
+}
+
+.tf-btn-primary:hover {
+  background: linear-gradient(135deg, var(--tf-brand-hover) 0%, var(--tf-brand-active) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(212, 175, 116, 0.45);
+}
+
+.tf-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Botón Secundario */
+.tf-btn-secondary {
+  background: transparent;
+  color: var(--tf-text-primary);
+  border: 1px solid var(--tf-border-dark);
+}
+
+.tf-btn-secondary:hover {
+  background: var(--tf-bg-tertiary);
+  border-color: var(--tf-brand);
+}
+
+/* Botón Success */
+.tf-btn-success {
+  background: var(--tf-success);
+  color: white;
+  box-shadow: var(--tf-shadow-success);
+}
+
+.tf-btn-success:hover {
+  background: var(--tf-success-hover);
+}
+
+/* Botón Danger */
+.tf-btn-danger {
+  background: var(--tf-danger);
+  color: white;
+  box-shadow: var(--tf-shadow-danger);
+}
+
+.tf-btn-danger:hover {
+  background: var(--tf-danger-hover);
+}
+
+/* Tamaños de botones */
+.tf-btn-sm {
+  padding: var(--tf-space-2) var(--tf-space-4);
+  font-size: var(--tf-font-size-sm);
+}
+
+.tf-btn-lg {
+  padding: var(--tf-space-4) var(--tf-space-8);
+  font-size: var(--tf-font-size-lg);
+}
+
+/* Botón de ancho completo */
+.tf-btn-block {
+  width: 100%;
+}
+
+/* ========================================
+   3. COMPONENTES - INPUTS
+   ======================================== */
+.tf-input {
+  width: 100%;
+  padding: var(--tf-space-3) var(--tf-space-4);
+  font-size: var(--tf-font-size-base);
+  font-family: var(--tf-font-family);
+  color: var(--tf-text-primary);
+  background: white;
+  border: 1px solid var(--tf-border-color);
+  border-radius: var(--tf-radius-md);
+  outline: none;
+  transition: all var(--tf-transition-base);
+}
+
+.tf-input::placeholder {
+  color: var(--tf-text-tertiary);
+}
+
+.tf-input:hover {
+  border-color: var(--tf-border-dark);
+  background: white;
+}
+
+.tf-input:focus {
+  border-color: var(--tf-brand);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(212, 175, 116, 0.15);
+}
+
+.tf-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--tf-bg-secondary);
+}
+
+/* Input con error */
+.tf-input.is-invalid {
+  border-color: var(--tf-danger);
+}
+
+.tf-input.is-invalid:focus {
+  box-shadow: 0 0 0 4px rgba(196, 92, 74, 0.15);
+}
+
+/* Input con éxito */
+.tf-input.is-valid {
+  border-color: var(--tf-success);
+}
+
+.tf-input.is-valid:focus {
+  box-shadow: 0 0 0 4px rgba(90, 147, 103, 0.15);
+}
+
+/* ========================================
+   4. COMPONENTES - CARDS
+   ======================================== */
+.tf-card {
+  background: white;
+  border: 1px solid var(--tf-border-color);
+  border-radius: var(--tf-radius-xl);
+  box-shadow: var(--tf-shadow-md);
+  overflow: hidden;
+}
+
+.tf-card-header {
+  padding: var(--tf-space-6);
+  border-bottom: 1px solid var(--tf-border-color);
+  background: var(--tf-bg-secondary);
+}
+
+.tf-card-body {
+  padding: var(--tf-space-6);
+}
+
+.tf-card-footer {
+  padding: var(--tf-space-6);
+  border-top: 1px solid var(--tf-border-color);
+  background: var(--tf-bg-secondary);
+}
+
+/* Card hover effect */
+.tf-card-hover {
+  transition: all var(--tf-transition-base);
+}
+
+.tf-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--tf-shadow-lg);
+}
+
+/* ========================================
+   5. COMPONENTES - ALERTAS
+   ======================================== */
+.tf-alert {
+  display: flex;
+  align-items: center;
+  gap: var(--tf-space-3);
+  padding: var(--tf-space-4) var(--tf-space-5);
+  border-radius: var(--tf-radius-lg);
+  font-size: var(--tf-font-size-sm);
+  border: 1px solid transparent;
+}
+
+.tf-alert-success {
+  background: var(--tf-success-light);
+  color: var(--tf-success-hover);
+  border-color: rgba(90, 147, 103, 0.3);
+}
+
+.tf-alert-info {
+  background: var(--tf-info-light);
+  color: var(--tf-info-hover);
+  border-color: rgba(91, 141, 184, 0.3);
+}
+
+.tf-alert-warning {
+  background: var(--tf-warning-light);
+  color: var(--tf-warning-hover);
+  border-color: rgba(201, 162, 39, 0.3);
+}
+
+.tf-alert-danger {
+  background: var(--tf-danger-light);
+  color: var(--tf-danger-hover);
+  border-color: rgba(196, 92, 74, 0.3);
+}
+
+/* ========================================
+   6. COMPONENTES - BADGES
+   ======================================== */
+.tf-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--tf-space-1) var(--tf-space-3);
+  font-size: var(--tf-font-size-xs);
+  font-weight: var(--tf-font-weight-semibold);
+  border-radius: var(--tf-radius-full);
+  white-space: nowrap;
+}
+
+.tf-badge-primary {
+  background: var(--tf-brand);
+  color: white;
+}
+
+.tf-badge-success {
+  background: var(--tf-success);
+  color: white;
+}
+
+.tf-badge-danger {
+  background: var(--tf-danger);
+  color: white;
+}
+
+.tf-badge-warning {
+  background: var(--tf-warning);
+  color: white;
+}
+
+.tf-badge-info {
+  background: var(--tf-info);
+  color: white;
+}
+
+/* ========================================
+   7. COMPONENTES - TABLAS
+   ======================================== */
+.tf-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--tf-radius-lg);
+  overflow: hidden;
+}
+
+.tf-table thead {
+  background: var(--tf-bg-secondary);
+}
+
+.tf-table th {
+  padding: var(--tf-space-4);
+  text-align: left;
+  font-weight: var(--tf-font-weight-semibold);
+  color: var(--tf-text-primary);
+  font-size: var(--tf-font-size-sm);
+  border-bottom: 1px solid var(--tf-border-color);
+}
+
+.tf-table td {
+  padding: var(--tf-space-4);
+  color: var(--tf-text-secondary);
+  border-bottom: 1px solid var(--tf-border-color);
+}
+
+.tf-table tbody tr:hover {
+  background: var(--tf-bg-primary);
+}
+
+.tf-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========================================
+   8. UTILIDADES - COLORES
+   ======================================== */
+.tf-text-primary { color: var(--tf-text-primary); }
+.tf-text-secondary { color: var(--tf-text-secondary); }
+.tf-text-tertiary { color: var(--tf-text-tertiary); }
+.tf-text-success { color: var(--tf-success); }
+.tf-text-danger { color: var(--tf-danger); }
+.tf-text-warning { color: var(--tf-warning); }
+.tf-text-info { color: var(--tf-info); }
+.tf-text-brand { color: var(--tf-brand); }
+
+.tf-bg-primary { background: var(--tf-bg-primary); }
+.tf-bg-secondary { background: var(--tf-bg-secondary); }
+.tf-bg-tertiary { background: var(--tf-bg-tertiary); }
+
+/* ========================================
+   9. UTILIDADES - ESPACIADO
+   ======================================== */
+.tf-m-0 { margin: 0; }
+.tf-m-2 { margin: var(--tf-space-2); }
+.tf-m-4 { margin: var(--tf-space-4); }
+.tf-m-6 { margin: var(--tf-space-6); }
+.tf-m-8 { margin: var(--tf-space-8); }
+
+.tf-mt-2 { margin-top: var(--tf-space-2); }
+.tf-mt-4 { margin-top: var(--tf-space-4); }
+.tf-mt-6 { margin-top: var(--tf-space-6); }
+.tf-mt-8 { margin-top: var(--tf-space-8); }
+
+.tf-mb-2 { margin-bottom: var(--tf-space-2); }
+.tf-mb-4 { margin-bottom: var(--tf-space-4); }
+.tf-mb-6 { margin-bottom: var(--tf-space-6); }
+.tf-mb-8 { margin-bottom: var(--tf-space-8); }
+
+.tf-p-2 { padding: var(--tf-space-2); }
+.tf-p-4 { padding: var(--tf-space-4); }
+.tf-p-6 { padding: var(--tf-space-6); }
+.tf-p-8 { padding: var(--tf-space-8); }
+
+/* ========================================
+   10. UTILIDADES - LAYOUT
+   ======================================== */
+.tf-flex { display: flex; }
+.tf-flex-col { flex-direction: column; }
+.tf-items-center { align-items: center; }
+.tf-justify-center { justify-content: center; }
+.tf-justify-between { justify-content: space-between; }
+.tf-gap-2 { gap: var(--tf-space-2); }
+.tf-gap-4 { gap: var(--tf-space-4); }
+.tf-gap-6 { gap: var(--tf-space-6); }
+
+.tf-grid { display: grid; }
+.tf-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.tf-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.tf-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* ========================================
+   11. UTILIDADES - TEXTO
+   ======================================== */
+.tf-text-center { text-align: center; }
+.tf-text-right { text-align: right; }
+.tf-font-bold { font-weight: var(--tf-font-weight-bold); }
+.tf-font-semibold { font-weight: var(--tf-font-weight-semibold); }
+.tf-font-medium { font-weight: var(--tf-font-weight-medium); }
+
+/* ========================================
+   12. UTILIDADES - DISPLAY
+   ======================================== */
+.tf-hidden { display: none; }
+.tf-block { display: block; }
+.tf-inline-block { display: inline-block; }
+
+/* ========================================
+   13. UTILIDADES - BORDER RADIUS
+   ======================================== */
+.tf-rounded-sm { border-radius: var(--tf-radius-sm); }
+.tf-rounded { border-radius: var(--tf-radius-md); }
+.tf-rounded-lg { border-radius: var(--tf-radius-lg); }
+.tf-rounded-xl { border-radius: var(--tf-radius-xl); }
+.tf-rounded-full { border-radius: var(--tf-radius-full); }
+
+/* ========================================
+   14. UTILIDADES - SOMBRAS
+   ======================================== */
+.tf-shadow-sm { box-shadow: var(--tf-shadow-sm); }
+.tf-shadow { box-shadow: var(--tf-shadow-md); }
+.tf-shadow-lg { box-shadow: var(--tf-shadow-lg); }
+
+/* ========================================
+   15. RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .tf-grid-cols-2,
+  .tf-grid-cols-3,
+  .tf-grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .tf-hide-mobile {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) {
+  .tf-hide-desktop {
+    display: none;
+  }
+}
+
+/* ========================================
+   16. ANIMACIONES
+   ======================================== */
+@keyframes tf-fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes tf-fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tf-slideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+.tf-animate-fadeIn {
+  animation: tf-fadeIn 0.3s ease-out;
+}
+
+.tf-animate-fadeInUp {
+  animation: tf-fadeInUp 0.5s ease-out;
+}
+
+.tf-animate-slideIn {
+  animation: tf-slideIn 0.3s ease-out;
+}

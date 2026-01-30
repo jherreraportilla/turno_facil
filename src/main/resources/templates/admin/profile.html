@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <th:block th:replace="~{fragments/head :: favicons}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi Perfil – TurnoFácil</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- TurnoFácil Theme -->
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+</head>
+<body class="admin-page">
+
+<!-- NAVBAR -->
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- DATOS PERSONALES -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="bi bi-person-circle me-2"></i>
+                                Mi Perfil
+                            </h2>
+                            <p class="mb-0 opacity-90">Administra tus datos personales y credenciales</p>
+                        </div>
+                        <a th:href="@{/admin/dashboard}" class="btn btn-logout">
+                            <i class="bi bi-arrow-left me-2"></i>Volver al dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <div class="admin-card-body">
+
+                    <!-- MENSAJE DE ÉXITO -->
+                    <div th:if="${success}" class="admin-alert admin-alert-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span th:text="${success}">Cambios guardados</span>
+                    </div>
+
+                    <!-- MENSAJE DE ERROR -->
+                    <div th:if="${error}" class="admin-alert admin-alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${error}">Error</span>
+                    </div>
+
+                    <form th:action="@{/admin/profile}" method="post" class="admin-form">
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-person me-1"></i>
+                                Nombre completo
+                            </label>
+                            <input type="text" class="form-control form-control-lg"
+                                   name="name" th:value="${user.name}" required
+                                   placeholder="Tu nombre o nombre del negocio">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-envelope me-1"></i>
+                                Email
+                            </label>
+                            <input type="email" class="form-control form-control-lg"
+                                   name="email" th:value="${user.email}" required
+                                   placeholder="tu@email.com">
+                            <small class="form-text">
+                                Este email se usa para iniciar sesión y recibir notificaciones
+                            </small>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="form-label">
+                                <i class="bi bi-telephone me-1"></i>
+                                Teléfono
+                            </label>
+                            <input type="tel" class="form-control form-control-lg"
+                                   name="phone" th:value="${user.phone}"
+                                   placeholder="+34 600 000 000">
+                            <small class="form-text">
+                                Opcional. Útil para que los clientes puedan contactarte
+                            </small>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-admin-success btn-lg px-5">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Guardar cambios
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <!-- CAMBIAR CONTRASEÑA -->
+            <div class="admin-card">
+                <div class="admin-card-header" style="background: linear-gradient(135deg, #4a3f35 0%, #5a4a3d 100%);">
+                    <h4 class="mb-0">
+                        <i class="bi bi-shield-lock me-2"></i>
+                        Cambiar contraseña
+                    </h4>
+                </div>
+
+                <div class="admin-card-body">
+
+                    <!-- MENSAJE DE ÉXITO CONTRASEÑA -->
+                    <div th:if="${successPassword}" class="admin-alert admin-alert-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span th:text="${successPassword}">Contraseña actualizada</span>
+                    </div>
+
+                    <!-- MENSAJE DE ERROR CONTRASEÑA -->
+                    <div th:if="${errorPassword}" class="admin-alert admin-alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${errorPassword}">Error</span>
+                    </div>
+
+                    <form th:action="@{/admin/profile/password}" method="post" class="admin-form" id="passwordForm">
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-key me-1"></i>
+                                Contraseña actual
+                            </label>
+                            <input type="password" class="form-control form-control-lg"
+                                   name="currentPassword" required
+                                   autocomplete="off" data-lpignore="true"
+                                   placeholder="Tu contraseña actual">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-lock me-1"></i>
+                                Nueva contraseña
+                            </label>
+                            <input type="password" class="form-control form-control-lg"
+                                   name="newPassword" id="newPassword" required minlength="8"
+                                   autocomplete="off" data-lpignore="true" data-form-type="other"
+                                   placeholder="Crea una contraseña segura">
+
+                            <div class="password-requirements mt-3 p-3 rounded" style="background: var(--tf-bg-secondary);">
+                                <small class="d-block mb-2 fw-bold">La contraseña debe cumplir:</small>
+                                <ul class="password-checklist list-unstyled mb-0">
+                                    <li id="req-length" class="mb-1"><i class="bi bi-circle me-2"></i>Minimo 8 caracteres</li>
+                                    <li id="req-upper" class="mb-1"><i class="bi bi-circle me-2"></i>Al menos una mayuscula</li>
+                                    <li id="req-number" class="mb-1"><i class="bi bi-circle me-2"></i>Al menos un numero</li>
+                                    <li id="req-special" class="mb-1"><i class="bi bi-circle me-2"></i>Al menos un caracter especial (!@#$%...)</li>
+                                    <li id="req-name"><i class="bi bi-circle me-2"></i>No relacionada con el nombre del negocio</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-lock-fill me-1"></i>
+                                Confirmar contraseña
+                            </label>
+                            <input type="password" class="form-control form-control-lg"
+                                   name="confirmPassword" id="confirmPassword" required minlength="8"
+                                   autocomplete="off" data-lpignore="true"
+                                   placeholder="Repite la nueva contraseña">
+                            <small id="matchMessage" class="form-text" style="display: none;"></small>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-admin-primary btn-lg px-5" id="changePasswordBtn">
+                                <i class="bi bi-shield-check me-2"></i>
+                                Cambiar contraseña
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/notifications.js}"></script>
+
+<script th:inline="javascript">
+    const businessName = /*[[${businessConfig.businessName}]]*/ '';
+    const userEmail = /*[[${user.email}]]*/ '';
+
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const matchMessage = document.getElementById('matchMessage');
+    const passwordForm = document.getElementById('passwordForm');
+
+    function validatePasswordRequirements(pwd) {
+        const name = businessName.toLowerCase().replace(/\s+/g, '');
+        const nameParts = businessName.toLowerCase().split(/\s+/).filter(p => p.length >= 4);
+        const emailUser = userEmail.split('@')[0].toLowerCase();
+
+        const hasLength = pwd.length >= 8;
+        const hasUpper = /[A-Z]/.test(pwd);
+        const hasNumber = /[0-9]/.test(pwd);
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd);
+
+        let hasNoName = true;
+        if (name.length >= 3 && pwd.toLowerCase().includes(name)) {
+            hasNoName = false;
+        }
+        for (const part of nameParts) {
+            if (pwd.toLowerCase().includes(part)) {
+                hasNoName = false;
+                break;
+            }
+        }
+        if (emailUser.length >= 4 && pwd.toLowerCase().includes(emailUser)) {
+            hasNoName = false;
+        }
+
+        return hasLength && hasUpper && hasNumber && hasSpecial && hasNoName;
+    }
+
+    function updateRequirement(id, isValid) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const icon = el.querySelector('i');
+        if (isValid) {
+            el.style.color = 'var(--tf-success)';
+            icon.className = 'bi bi-check-circle-fill me-2';
+        } else {
+            el.style.color = 'var(--tf-text-secondary)';
+            icon.className = 'bi bi-circle me-2';
+        }
+    }
+
+    function checkPassword() {
+        const pwd = newPassword.value;
+        const name = businessName.toLowerCase().replace(/\s+/g, '');
+        const nameParts = businessName.toLowerCase().split(/\s+/).filter(p => p.length >= 4);
+        const emailUser = userEmail.split('@')[0].toLowerCase();
+
+        updateRequirement('req-length', pwd.length >= 8);
+        updateRequirement('req-upper', /[A-Z]/.test(pwd));
+        updateRequirement('req-number', /[0-9]/.test(pwd));
+        updateRequirement('req-special', /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd));
+
+        let hasNoName = true;
+        if (name.length >= 3 && pwd.toLowerCase().includes(name)) {
+            hasNoName = false;
+        }
+        for (const part of nameParts) {
+            if (pwd.toLowerCase().includes(part)) {
+                hasNoName = false;
+                break;
+            }
+        }
+        if (emailUser.length >= 4 && pwd.toLowerCase().includes(emailUser)) {
+            hasNoName = false;
+        }
+        updateRequirement('req-name', pwd.length === 0 || hasNoName);
+
+        // Verificar coincidencia
+        checkPasswordMatch();
+    }
+
+    function checkPasswordMatch() {
+        if (confirmPassword.value.length > 0) {
+            if (newPassword.value === confirmPassword.value) {
+                matchMessage.textContent = 'Las contraseñas coinciden';
+                matchMessage.style.color = 'var(--tf-success)';
+                matchMessage.style.display = 'block';
+            } else {
+                matchMessage.textContent = 'Las contraseñas no coinciden';
+                matchMessage.style.color = 'var(--tf-danger)';
+                matchMessage.style.display = 'block';
+            }
+        } else {
+            matchMessage.style.display = 'none';
+        }
+    }
+
+    newPassword.addEventListener('input', checkPassword);
+    confirmPassword.addEventListener('input', checkPasswordMatch);
+
+    passwordForm.addEventListener('submit', function(e) {
+        if (!validatePasswordRequirements(newPassword.value)) {
+            e.preventDefault();
+            newPassword.focus();
+            alert('La contraseña no cumple los requisitos de seguridad');
+            return false;
+        }
+        if (newPassword.value !== confirmPassword.value) {
+            e.preventDefault();
+            confirmPassword.focus();
+            alert('Las contraseñas no coinciden');
+            return false;
+        }
+    });
+</script>
+
+</body>
+</html>

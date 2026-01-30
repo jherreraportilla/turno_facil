@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <th:block th:replace="~{fragments/head :: favicons}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Factura ' + ${invoice.invoiceNumber()} + ' – TurnoFácil'">Factura – TurnoFácil</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+
+    <style>
+        .invoice-container {
+            background: white;
+            border-radius: var(--tf-radius-xl);
+            box-shadow: var(--tf-shadow-md);
+            padding: 2.5rem;
+        }
+        .invoice-header {
+            border-bottom: 2px solid var(--tf-brand);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .invoice-section {
+            margin-bottom: 2rem;
+        }
+        .invoice-section-title {
+            font-weight: 700;
+            color: var(--tf-text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .invoice-table th {
+            background: var(--tf-bg-secondary);
+            font-weight: 600;
+        }
+        .invoice-totals {
+            background: var(--tf-bg-secondary);
+            border-radius: var(--tf-radius-lg);
+            padding: 1.5rem;
+        }
+        .status-banner {
+            padding: 1rem;
+            border-radius: var(--tf-radius-lg);
+            margin-bottom: 1.5rem;
+        }
+        .status-banner.draft { background: rgba(108, 117, 125, 0.1); border-left: 4px solid #6c757d; }
+        .status-banner.issued { background: rgba(13, 110, 253, 0.1); border-left: 4px solid #0d6efd; }
+        .status-banner.paid { background: rgba(25, 135, 84, 0.1); border-left: 4px solid #198754; }
+        .status-banner.cancelled { background: rgba(220, 53, 69, 0.1); border-left: 4px solid #dc3545; }
+        @media print {
+            .no-print { display: none !important; }
+            .invoice-container { box-shadow: none; }
+        }
+    </style>
+</head>
+<body class="admin-page">
+
+<div th:replace="~{fragments/navbar :: navbar}" class="no-print"></div>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+
+            <!-- Barra de acciones -->
+            <div class="d-flex justify-content-between align-items-center mb-4 no-print">
+                <a th:href="@{/admin/invoices}" class="btn btn-admin-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Volver a facturas
+                </a>
+                <div class="d-flex gap-2">
+                    <!-- Imprimir -->
+                    <button onclick="window.print()" class="btn btn-admin-secondary">
+                        <i class="bi bi-printer me-1"></i>Imprimir
+                    </button>
+
+                    <!-- Emitir (solo si es borrador) -->
+                    <form th:if="${invoice.status().name() == 'DRAFT'}"
+                          th:action="@{/admin/invoices/{id}/emit(id=${invoice.id()})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-admin-primary"
+                                onclick="return confirm('¿Emitir esta factura? Una vez emitida NO se puede modificar.')">
+                            <i class="bi bi-send me-1"></i>Emitir factura
+                        </button>
+                    </form>
+
+                    <!-- Marcar pagada (solo si está emitida) -->
+                    <form th:if="${invoice.status().name() == 'ISSUED'}"
+                          th:action="@{/admin/invoices/{id}/pay(id=${invoice.id()})}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-admin-success">
+                            <i class="bi bi-check-circle me-1"></i>Marcar pagada
+                        </button>
+                    </form>
+
+                    <!-- Anular (solo si está emitida) -->
+                    <button th:if="${invoice.status().name() == 'ISSUED'}"
+                            class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                        <i class="bi bi-x-circle me-1"></i>Anular
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mensajes -->
+            <div th:if="${success}" class="admin-alert admin-alert-success no-print">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${success}"></span>
+            </div>
+            <div th:if="${error}" class="admin-alert admin-alert-danger no-print">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Banner de estado -->
+            <div class="status-banner no-print"
+                 th:classappend="${invoice.status().name().toLowerCase()}">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="badge fs-6" th:classappend="${invoice.status().getBadgeClass()}"
+                              th:text="${invoice.status().getDisplayName()}">Estado</span>
+                        <span th:if="${invoice.status().name() == 'DRAFT'}" class="ms-2 text-muted">
+                            Esta factura es un borrador y puede ser editada antes de emitir.
+                        </span>
+                        <span th:if="${invoice.status().name() == 'ISSUED'}" class="ms-2 text-muted">
+                            Factura emitida. Los datos son inmutables.
+                        </span>
+                        <span th:if="${invoice.status().name() == 'CANCELLED'}" class="ms-2 text-muted">
+                            Factura anulada: <span th:text="${invoice.cancellationReason()}"></span>
+                        </span>
+                    </div>
+                    <div th:if="${invoice.issuedAt() != null}">
+                        <small class="text-muted">
+                            Emitida: <span th:text="${#temporals.format(invoice.issuedAt(), 'dd/MM/yyyy HH:mm')}"></span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Factura -->
+            <div class="invoice-container">
+
+                <!-- Cabecera -->
+                <div class="invoice-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h1 class="h3 fw-bold" style="color: var(--tf-brand);">FACTURA</h1>
+                            <p class="h4 mb-0" th:text="${invoice.invoiceNumber()}">TF-2025-00001</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-1">
+                                <strong>Fecha de emisión:</strong>
+                                <span th:text="${#temporals.format(invoice.issueDate(), 'dd/MM/yyyy')}"></span>
+                            </p>
+                            <p class="mb-1" th:if="${invoice.dueDate() != null}">
+                                <strong>Fecha de vencimiento:</strong>
+                                <span th:text="${#temporals.format(invoice.dueDate(), 'dd/MM/yyyy')}"></span>
+                            </p>
+                            <p class="mb-0">
+                                <strong>Fecha del servicio:</strong>
+                                <span th:text="${#temporals.format(invoice.serviceDate(), 'dd/MM/yyyy')}"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Datos emisor y receptor -->
+                <div class="row invoice-section">
+                    <div class="col-md-6">
+                        <p class="invoice-section-title">Emisor</p>
+                        <p class="mb-1 fw-bold" th:text="${invoice.emitterLegalName()}">Razón Social</p>
+                        <p class="mb-1" th:text="'NIF/CIF: ' + ${invoice.emitterTaxId()}">NIF: 12345678A</p>
+                        <p class="mb-1" th:text="${invoice.emitterAddress()}">Dirección</p>
+                        <p class="mb-0">
+                            <span th:text="${invoice.emitterPostalCode()}"></span>
+                            <span th:text="${invoice.emitterCity()}"></span>
+                            <span th:if="${invoice.emitterProvince() != null}" th:text="'(' + ${invoice.emitterProvince()} + ')'"></span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="invoice-section-title">Cliente</p>
+                        <p class="mb-1 fw-bold" th:text="${invoice.clientName()}">Nombre Cliente</p>
+                        <p class="mb-1" th:if="${invoice.clientTaxId() != null}" th:text="'NIF: ' + ${invoice.clientTaxId()}"></p>
+                        <p class="mb-1" th:if="${invoice.clientEmail() != null}" th:text="${invoice.clientEmail()}"></p>
+                        <p class="mb-1" th:if="${invoice.clientPhone() != null}" th:text="${invoice.clientPhone()}"></p>
+                        <p class="mb-0" th:if="${invoice.clientAddress() != null}" th:text="${invoice.clientAddress()}"></p>
+                    </div>
+                </div>
+
+                <!-- Líneas de factura -->
+                <div class="invoice-section">
+                    <p class="invoice-section-title">Detalle</p>
+                    <table class="table invoice-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%;">Descripción</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio unit.</th>
+                                <th class="text-end">Descuento</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="line : ${invoice.lines()}">
+                                <td th:text="${line.description()}">Descripción del servicio</td>
+                                <td class="text-center" th:text="${#numbers.formatDecimal(line.quantity(), 1, 2)}">1.00</td>
+                                <td class="text-end" th:text="${#numbers.formatDecimal(line.unitPrice(), 1, 2)} + ' €'">0.00 €</td>
+                                <td class="text-end">
+                                    <span th:if="${line.discountPercent() != null && line.discountPercent() > 0}"
+                                          th:text="${#numbers.formatDecimal(line.discountPercent(), 1, 2)} + '%'">0%</span>
+                                    <span th:unless="${line.discountPercent() != null && line.discountPercent() > 0}">-</span>
+                                </td>
+                                <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(line.lineTotal(), 1, 2)} + ' €'">0.00 €</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totales -->
+                <div class="row justify-content-end">
+                    <div class="col-md-5">
+                        <div class="invoice-totals">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span th:text="${#numbers.formatDecimal(invoice.subtotal(), 1, 2)} + ' €'">0.00 €</span>
+                            </div>
+                            <div th:if="${invoice.discountTotal() != null && invoice.discountTotal() > 0}"
+                                 class="d-flex justify-content-between mb-2">
+                                <span>Descuento:</span>
+                                <span th:text="'-' + ${#numbers.formatDecimal(invoice.discountTotal(), 1, 2)} + ' €'">0.00 €</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Base imponible:</span>
+                                <span th:text="${#numbers.formatDecimal(invoice.taxableBase(), 1, 2)} + ' €'">0.00 €</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span th:text="'IVA (' + ${#numbers.formatDecimal(invoice.vatRate(), 1, 0)} + '%):'">IVA (21%):</span>
+                                <span th:text="${#numbers.formatDecimal(invoice.vatAmount(), 1, 2)} + ' €'">0.00 €</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>TOTAL:</span>
+                                <span th:text="${#numbers.formatDecimal(invoice.total(), 1, 2)} + ' €'">0.00 €</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notas -->
+                <div th:if="${invoice.notes() != null}" class="invoice-section mt-4">
+                    <p class="invoice-section-title">Notas</p>
+                    <p class="text-muted mb-0" th:text="${invoice.notes()}"></p>
+                </div>
+
+                <!-- Condiciones de pago -->
+                <div th:if="${invoice.paymentTerms() != null}" class="invoice-section">
+                    <p class="invoice-section-title">Condiciones de pago</p>
+                    <p class="text-muted mb-0" th:text="${invoice.paymentTerms()}"></p>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal de anulación -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/admin/invoices/{id}/cancel(id=${invoice.id()})}" method="post">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Anular factura
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger fw-bold">
+                        Esta acción es irreversible. Se creará una factura rectificativa.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label">Motivo de la anulación *</label>
+                        <textarea name="reason" class="form-control" rows="3" required
+                                  placeholder="Indica el motivo de la anulación..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-x-circle me-1"></i>Anular factura
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/notifications.js}"></script>
+
+</body>
+</html>

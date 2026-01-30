@@ -1,0 +1,1038 @@
+/* ========================================
+   TURNOFACIL - ESTILOS DE ADMIN
+   Páginas: dashboard.html, config.html
+   Versión: 2.0 - Tema Elegante Dorado
+   ======================================== */
+
+/* ========================================
+   1. BASE Y LAYOUT
+   ======================================== */
+.admin-page {
+  background: linear-gradient(135deg, var(--tf-bg-primary) 0%, var(--tf-bg-secondary) 100%);
+  min-height: 100vh;
+  color: var(--tf-text-primary);
+  font-family: var(--tf-font-family);
+}
+
+/* ========================================
+   2. NAVBAR
+   ======================================== */
+.admin-navbar {
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  box-shadow: var(--tf-shadow-md);
+  padding: 0.75rem 0;
+}
+
+.admin-navbar .navbar-brand {
+  font-weight: 800;
+  font-size: 1.5rem;
+  color: white;
+  text-decoration: none;
+}
+
+.admin-navbar .navbar-brand:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.admin-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: var(--tf-radius-md);
+  transition: all var(--tf-transition-base);
+  margin: 0 0.25rem;
+}
+
+.admin-navbar .nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.admin-navbar .nav-link.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.25);
+  font-weight: 700;
+}
+
+.admin-navbar .avatar {
+  width: 42px;
+  height: 42px;
+  background: white;
+  color: var(--tf-brand-hover);
+  border-radius: 50%;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.admin-navbar .btn-logout {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: var(--tf-radius-full);
+  padding: 0.5rem 1.25rem;
+  font-weight: 600;
+  transition: all var(--tf-transition-base);
+}
+
+.admin-navbar .btn-logout:hover {
+  background: white;
+  color: var(--tf-brand-hover);
+}
+
+/* ========================================
+   3. CARDS
+   ======================================== */
+.admin-card {
+  background: white;
+  border: none;
+  border-radius: var(--tf-radius-2xl);
+  overflow: hidden;
+  box-shadow: var(--tf-shadow-md);
+}
+
+.admin-card-header {
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+}
+
+.admin-card-header h4,
+.admin-card-header h2 {
+  margin: 0;
+  font-weight: 700;
+}
+
+.admin-card-body {
+  padding: 2rem;
+  background: white;
+}
+
+/* Card Glass Effect (para enlace público) */
+.admin-card-glass {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(212, 175, 116, 0.3);
+  border-radius: var(--tf-radius-2xl);
+}
+
+/* ========================================
+   4. KPI CARDS
+   ======================================== */
+.kpi-card {
+  background: white;
+  border: none;
+  border-radius: var(--tf-radius-xl);
+  box-shadow: var(--tf-shadow-sm);
+  transition: all var(--tf-transition-base);
+  height: 100%;
+}
+
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--tf-shadow-md);
+}
+
+.kpi-card .kpi-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--tf-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpi-card .kpi-icon.primary {
+  background: rgba(212, 175, 116, 0.15);
+  color: var(--tf-brand);
+}
+
+.kpi-card .kpi-icon.info {
+  background: rgba(91, 141, 184, 0.15);
+  color: var(--tf-info);
+}
+
+.kpi-card .kpi-icon.success {
+  background: rgba(90, 147, 103, 0.15);
+  color: var(--tf-success);
+}
+
+.kpi-card .kpi-icon.danger {
+  background: rgba(196, 92, 74, 0.15);
+  color: var(--tf-danger);
+}
+
+.kpi-card .kpi-icon.warning {
+  background: rgba(201, 162, 39, 0.15);
+  color: var(--tf-warning);
+}
+
+.kpi-card .kpi-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--tf-text-primary);
+}
+
+.kpi-card .kpi-label {
+  color: var(--tf-text-secondary);
+  font-size: 0.9rem;
+}
+
+/* ========================================
+   5. TABLAS
+   ======================================== */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead {
+  background: var(--tf-bg-secondary);
+}
+
+.admin-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--tf-text-primary);
+  font-size: 0.9rem;
+  border-bottom: 2px solid var(--tf-border-color);
+}
+
+.admin-table td {
+  padding: 1rem;
+  color: var(--tf-text-secondary);
+  border-bottom: 1px solid var(--tf-border-color);
+  vertical-align: middle;
+}
+
+.admin-table tbody tr {
+  transition: all var(--tf-transition-fast);
+}
+
+.admin-table tbody tr:hover {
+  background: var(--tf-bg-primary);
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Sortable headers */
+.admin-table th[data-sortable] {
+  cursor: pointer;
+  user-select: none;
+}
+
+.admin-table th[data-sortable]:hover {
+  background: var(--tf-bg-tertiary);
+}
+
+.admin-table th .sort-icon {
+  opacity: 0.3;
+  transition: opacity var(--tf-transition-fast);
+  margin-left: 0.5rem;
+}
+
+.admin-table th:hover .sort-icon {
+  opacity: 0.6;
+}
+
+.admin-table th.sorted .sort-icon {
+  opacity: 1;
+  color: var(--tf-brand);
+}
+
+/* ========================================
+   6. BADGES DE ESTADO
+   ======================================== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border-radius: var(--tf-radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge.pending {
+  background: rgba(201, 162, 39, 0.15);
+  color: var(--tf-warning-hover);
+}
+
+.status-badge.confirmed {
+  background: rgba(90, 147, 103, 0.15);
+  color: var(--tf-success-hover);
+}
+
+.status-badge.completed {
+  background: rgba(160, 169, 176, 0.2);
+  color: var(--tf-text-secondary);
+}
+
+.status-badge.cancelled {
+  background: rgba(196, 92, 74, 0.15);
+  color: var(--tf-danger-hover);
+}
+
+.status-badge.no-show {
+  background: rgba(74, 63, 53, 0.15);
+  color: var(--tf-text-primary);
+}
+
+/* ========================================
+   7. FILTROS
+   ======================================== */
+.filters-card {
+  background: var(--tf-bg-secondary);
+  border: 1px solid var(--tf-border-color);
+  border-radius: var(--tf-radius-lg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.filters-card .form-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--tf-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.filters-card .form-control,
+.filters-card .form-select {
+  background: white;
+  border: 1px solid var(--tf-border-color);
+  border-radius: var(--tf-radius-md);
+  padding: 0.625rem 1rem;
+  color: var(--tf-text-primary);
+  transition: all var(--tf-transition-base);
+}
+
+.filters-card .form-control:focus,
+.filters-card .form-select:focus {
+  border-color: var(--tf-brand);
+  box-shadow: 0 0 0 3px rgba(212, 175, 116, 0.15);
+}
+
+/* ========================================
+   8. BOTONES ADMIN
+   ======================================== */
+.btn-admin-primary {
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--tf-radius-md);
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  transition: all var(--tf-transition-base);
+  box-shadow: var(--tf-shadow-primary);
+}
+
+.btn-admin-primary:hover {
+  background: linear-gradient(135deg, var(--tf-brand-hover) 0%, var(--tf-brand-active) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 175, 116, 0.4);
+  color: white;
+}
+
+.btn-admin-secondary {
+  background: white;
+  color: var(--tf-text-primary);
+  border: 1px solid var(--tf-border-dark);
+  border-radius: var(--tf-radius-md);
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  transition: all var(--tf-transition-base);
+}
+
+.btn-admin-secondary:hover {
+  background: var(--tf-bg-secondary);
+  border-color: var(--tf-brand);
+  color: var(--tf-brand-hover);
+}
+
+.btn-admin-success {
+  background: var(--tf-success);
+  color: white;
+  border: none;
+  border-radius: var(--tf-radius-md);
+  padding: 0.625rem 1.25rem;
+  font-weight: 600;
+  transition: all var(--tf-transition-base);
+}
+
+.btn-admin-success:hover {
+  background: var(--tf-success-hover);
+  color: white;
+}
+
+/* ========================================
+   9. CALENDARIO
+   ======================================== */
+.calendar-container {
+  background: white;
+  border-radius: var(--tf-radius-xl);
+  padding: 1.5rem;
+}
+
+.fc .fc-button-primary {
+  background: var(--tf-brand) !important;
+  border: none !important;
+  border-radius: var(--tf-radius-md) !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1rem !important;
+  transition: all var(--tf-transition-base) !important;
+}
+
+.fc .fc-button-primary:hover {
+  background: var(--tf-brand-hover) !important;
+}
+
+.fc .fc-button-primary:disabled {
+  background: var(--tf-text-tertiary) !important;
+}
+
+.fc .fc-button-primary.fc-button-active {
+  background: var(--tf-brand-hover) !important;
+}
+
+.fc .fc-toolbar-title {
+  color: var(--tf-text-primary);
+  font-weight: 700;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: var(--tf-text-primary);
+  font-weight: 600;
+}
+
+.fc .fc-daygrid-day-number {
+  color: var(--tf-text-secondary);
+}
+
+.fc .fc-day-today {
+  background: rgba(212, 175, 116, 0.1) !important;
+}
+
+.fc .fc-event {
+  border-radius: var(--tf-radius-sm);
+  font-size: 0.85rem;
+  padding: 2px 6px;
+  cursor: pointer;
+  transition: all var(--tf-transition-fast);
+}
+
+.fc .fc-event:hover {
+  transform: scale(1.02);
+  opacity: 0.9;
+}
+
+/* ========================================
+   10. MODAL
+   ======================================== */
+.admin-modal .modal-header {
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  color: white;
+  border: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.admin-modal .modal-title {
+  font-weight: 700;
+}
+
+.admin-modal .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.admin-modal .modal-body {
+  padding: 1.5rem;
+}
+
+.admin-modal .modal-footer {
+  background: var(--tf-bg-secondary);
+  border-top: 1px solid var(--tf-border-color);
+  padding: 1rem 1.5rem;
+}
+
+/* ========================================
+   11. ALERTS
+   ======================================== */
+.admin-alert {
+  border-radius: var(--tf-radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-alert-success {
+  background: var(--tf-success-light);
+  color: var(--tf-success-hover);
+  border: 1px solid rgba(90, 147, 103, 0.3);
+}
+
+.admin-alert-danger {
+  background: var(--tf-danger-light);
+  color: var(--tf-danger-hover);
+  border: 1px solid rgba(196, 92, 74, 0.3);
+}
+
+.admin-alert-info {
+  background: var(--tf-info-light);
+  color: var(--tf-info-hover);
+  border: 1px solid rgba(91, 141, 184, 0.3);
+}
+
+/* ========================================
+   12. PROGRESS BAR
+   ======================================== */
+.admin-progress {
+  height: 25px;
+  background: var(--tf-bg-secondary);
+  border-radius: var(--tf-radius-full);
+  overflow: hidden;
+}
+
+.admin-progress .progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.admin-progress .progress-bar.success {
+  background: var(--tf-success);
+}
+
+.admin-progress .progress-bar.warning {
+  background: var(--tf-warning);
+}
+
+.admin-progress .progress-bar.danger {
+  background: var(--tf-danger);
+}
+
+/* ========================================
+   13. FORMULARIOS
+   ======================================== */
+.admin-form .form-label {
+  font-weight: 600;
+  color: var(--tf-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.admin-form .form-control,
+.admin-form .form-select {
+  background: var(--tf-bg-primary);
+  border: 1px solid var(--tf-border-color);
+  border-radius: var(--tf-radius-lg);
+  padding: 0.875rem 1.25rem;
+  color: var(--tf-text-primary);
+  font-size: 1rem;
+  transition: all var(--tf-transition-base);
+}
+
+.admin-form .form-control:focus,
+.admin-form .form-select:focus {
+  background: white;
+  border-color: var(--tf-brand);
+  box-shadow: 0 0 0 4px rgba(212, 175, 116, 0.15);
+  outline: none;
+}
+
+.admin-form .form-control::placeholder {
+  color: var(--tf-text-tertiary);
+}
+
+.admin-form .form-text {
+  color: var(--tf-text-tertiary);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+/* ========================================
+   14. PAGINACIÓN
+   ======================================== */
+.admin-pagination .page-link {
+  border: 1px solid var(--tf-border-color);
+  color: var(--tf-text-primary);
+  padding: 0.5rem 0.875rem;
+  transition: all var(--tf-transition-fast);
+}
+
+.admin-pagination .page-link:hover {
+  background: var(--tf-bg-secondary);
+  border-color: var(--tf-brand);
+  color: var(--tf-brand-hover);
+}
+
+.admin-pagination .page-item.active .page-link {
+  background: var(--tf-brand);
+  border-color: var(--tf-brand);
+  color: white;
+}
+
+.admin-pagination .page-item.disabled .page-link {
+  background: var(--tf-bg-secondary);
+  color: var(--tf-text-tertiary);
+}
+
+/* ========================================
+   15. TOAST
+   ======================================== */
+.admin-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 1rem 1.5rem;
+  border-radius: var(--tf-radius-lg);
+  box-shadow: var(--tf-shadow-lg);
+  z-index: 9999;
+  animation: slideInRight 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.admin-toast.success {
+  background: var(--tf-success);
+  color: white;
+}
+
+.admin-toast.error {
+  background: var(--tf-danger);
+  color: white;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   16. ENLACE PÚBLICO
+   ======================================== */
+.public-link-card {
+  background: linear-gradient(135deg, rgba(212, 175, 116, 0.1) 0%, rgba(169, 134, 87, 0.15) 100%);
+  border: 1px solid rgba(212, 175, 116, 0.3);
+  border-radius: var(--tf-radius-2xl);
+  padding: 3rem;
+  text-align: center;
+}
+
+.public-link-card .icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  border-radius: var(--tf-radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: var(--tf-shadow-primary);
+}
+
+.public-link-card .icon i {
+  font-size: 2.5rem;
+  color: white;
+}
+
+.public-link-card h3 {
+  color: var(--tf-text-primary);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.public-link-card p {
+  color: var(--tf-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.public-link-input {
+  background: white;
+  border: 2px solid var(--tf-border-color);
+  border-radius: var(--tf-radius-lg);
+  padding: 1rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--tf-text-primary);
+  text-align: center;
+}
+
+.public-link-input:focus {
+  border-color: var(--tf-brand);
+  outline: none;
+}
+
+/* ========================================
+   17. BOTONES DE ACCIÓN RÁPIDA
+   ======================================== */
+.btn-group-sm .btn {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+.btn-outline-success {
+  color: var(--tf-success);
+  border-color: var(--tf-success);
+}
+
+.btn-outline-success:hover {
+  background: var(--tf-success);
+  color: white;
+}
+
+.btn-outline-danger {
+  color: var(--tf-danger);
+  border-color: var(--tf-danger);
+}
+
+.btn-outline-danger:hover {
+  background: var(--tf-danger);
+  color: white;
+}
+
+/* WhatsApp link en tabla */
+.admin-table a.text-decoration-none:hover {
+  text-decoration: underline !important;
+}
+
+/* ========================================
+   18. RESPONSIVE
+   ======================================== */
+@media (max-width: 991px) {
+  .admin-navbar .navbar-collapse {
+    background: rgba(169, 134, 87, 0.95);
+    border-radius: var(--tf-radius-lg);
+    padding: 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .admin-navbar .nav-link {
+    padding: 0.75rem 1rem;
+    margin: 0.25rem 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-card-header {
+    padding: 1.25rem 1.5rem;
+  }
+
+  .admin-card-body {
+    padding: 1.5rem;
+  }
+
+  .kpi-card .kpi-value {
+    font-size: 1.5rem;
+  }
+
+  .filters-card {
+    padding: 1rem;
+  }
+
+  .public-link-card {
+    padding: 2rem 1.5rem;
+  }
+}
+
+/* ========================================
+   19. NOTIFICACIONES
+   ======================================== */
+.notification-bell {
+  color: white;
+  padding: 0.5rem;
+  border-radius: var(--tf-radius-lg);
+  transition: all var(--tf-transition-base);
+}
+
+.notification-bell:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--tf-danger);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--tf-brand);
+}
+
+.notifications-dropdown {
+  width: 360px;
+  max-height: 480px;
+  padding: 0;
+  border: none;
+  border-radius: var(--tf-radius-xl);
+  box-shadow: var(--tf-shadow-xl);
+  overflow: hidden;
+}
+
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: var(--tf-bg-secondary);
+  border-bottom: 1px solid var(--tf-border-color);
+}
+
+.notifications-header span {
+  font-weight: 700;
+  color: var(--tf-text-primary);
+}
+
+.notifications-header a {
+  font-size: 0.8rem;
+  color: var(--tf-brand-hover);
+  text-decoration: none;
+}
+
+.notifications-header a:hover {
+  text-decoration: underline;
+}
+
+.notifications-list {
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--tf-border-color);
+  cursor: pointer;
+  transition: background var(--tf-transition-fast);
+  position: relative;
+}
+
+.notification-item:hover {
+  background: var(--tf-bg-primary);
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item.unread {
+  background: rgba(212, 175, 116, 0.08);
+}
+
+.notification-item.unread::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--tf-brand);
+}
+
+.notification-item .notification-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--tf-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.notification-item .notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-item .notification-title {
+  font-weight: 600;
+  color: var(--tf-text-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.notification-item .notification-message {
+  color: var(--tf-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-item .notification-time {
+  font-size: 0.75rem;
+  color: var(--tf-text-tertiary);
+  margin-top: 0.25rem;
+}
+
+.notification-loading,
+.notification-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--tf-text-tertiary);
+}
+
+@media (max-width: 576px) {
+  .notifications-dropdown {
+    width: 300px;
+    right: -50px !important;
+  }
+}
+
+/* ========================================
+   20. NOTIFICATION TOAST (tiempo real)
+   ======================================== */
+.notification-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border-radius: var(--tf-radius-xl);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid var(--tf-brand);
+  max-width: 380px;
+  z-index: 10000;
+  transform: translateX(120%);
+  transition: transform 0.3s ease-out;
+}
+
+.notification-toast.show {
+  transform: translateX(0);
+}
+
+.notification-toast-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--tf-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.notification-toast-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-toast-title {
+  font-weight: 700;
+  color: var(--tf-text-primary);
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.notification-toast-message {
+  color: var(--tf-text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.notification-toast-close {
+  background: none;
+  border: none;
+  color: var(--tf-text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.notification-toast-close:hover {
+  color: var(--tf-text-primary);
+}
+
+/* Alpine.js cloak - ocultar hasta que este listo */
+[x-cloak] {
+  display: none !important;
+}
+
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ========================================
+   21. USER DROPDOWN
+   ======================================== */
+.admin-navbar .dropdown-toggle::after {
+  margin-left: 0.5rem;
+  opacity: 0.7;
+}
+
+.admin-navbar .dropdown-menu {
+  border: none;
+  border-radius: var(--tf-radius-lg);
+  box-shadow: var(--tf-shadow-lg);
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+}
+
+.admin-navbar .dropdown-item {
+  color: var(--tf-text-primary);
+  font-weight: 500;
+  transition: all var(--tf-transition-fast);
+}
+
+.admin-navbar .dropdown-item:hover {
+  background: var(--tf-bg-secondary);
+  color: var(--tf-brand-hover);
+}
+
+.admin-navbar .dropdown-item.text-danger:hover {
+  background: var(--tf-danger-light);
+  color: var(--tf-danger-hover);
+}
+
+.admin-navbar .dropdown-divider {
+  margin: 0.5rem 0;
+  border-color: var(--tf-border-color);
+}

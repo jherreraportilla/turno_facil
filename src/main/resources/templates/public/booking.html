@@ -1,147 +1,127 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
-    <th:block th:replace="fragments/head :: favicons" />
+    <th:block th:replace="~{fragments/head :: favicons}" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title th:text="${config.businessName + ' – Reserva tu turno'}">TurnoFácil</title>
+    <title th:text="${config.businessName + ' - Reserva tu turno'}">TurnoFacil</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- FullCalendar -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-    <style>
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem 0; margin: 0; }
-        .booking-wrapper { max-width: 1200px; margin: 0 auto; }
-        .card-main { border-radius: 32px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.5); background: white; }
-        .header { background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 5rem 3rem; text-align: center; }
-        .header h1 { font-weight: 900; font-size: 4.2rem; margin: 0; text-shadow: 0 6px 20px rgba(0,0,0,0.4); }
-        .header p { font-size: 1.5rem; opacity: 0.95; margin-top: 1.5rem; }
-        .logo-img { width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 8px solid white; margin-bottom: 1.5rem; box-shadow: 0 15px 40px rgba(0,0,0,0.4); }
-        .services { background: #f8f9ff; padding: 3rem 2rem; }
-        .service-card {
-          transition: all 0.4s;
-          border: 3px solid transparent;
-          border-radius: 24px;
-          cursor: pointer;
-          background: white;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        .service-card:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(102,126,234,0.3); }
-        .service-card.active {
-          border-color: #667eea !important;
-          background: #eef5ff !important;
-          box-shadow: 0 25px 50px rgba(102,126,234,0.4) !important;
-        }
-        .service-card h5 { font-weight: 800; }
-
-        .calendar-container { background: white; padding: 3rem 2rem; }
-        .fc-button-primary { background: #667eea !important; border: none !important; border-radius: 20px !important; padding: 0.9rem 2rem !important; font-weight: bold !important; }
-
-        /* Estilos mejorados para slots ocupados */
-        .fc-timegrid-event.occupied-slot {
-          background: linear-gradient(135deg, #ff4757 0%, #e84118 100%) !important;
-          border: none !important;
-          opacity: 1 !important;
-          cursor: not-allowed !important;
-        }
-        .fc-timegrid-event.occupied-slot .fc-event-main {
-          padding: 8px !important;
-          color: white !important;
-          font-weight: bold !important;
-          text-align: center !important;
-          font-size: 0.85rem !important;
-        }
-        .fc-timegrid-event.occupied-slot:hover {
-          opacity: 0.9 !important;
-          transform: none !important;
-        }
-
-        /* Quitar límite de altura de los eventos */
-        .fc-v-event, .fc-timegrid-event {
-          max-height: none !important;
-          overflow: visible !important;
-        }
-        .fc-event-title {
-          overflow: visible !important;
-        }
-
-        .step { display: none; }
-        .step.active { display: block; }
-
-        /* MENSAJE DE ÉXITO + RECARGA AUTOMÁTICA */
-        .success-banner {
-          position: fixed;
-          top: 0; left: 0; right: 0;
-          background: linear-gradient(90deg, #28a745, #20c997);
-          color: white;
-          padding: 1.8rem;
-          text-align: center;
-          font-size: 1.6rem;
-          font-weight: bold;
-          z-index: 9999;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-          animation: slideDown .6s ease-out;
-        }
-        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-    </style>
+    <!-- TurnoFacil Theme -->
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/public-pages.css}">
 </head>
-<body>
+<body class="public-page">
 
-<!-- MENSAJE DE ÉXITO + RECARGA AUTOMÁTICA (ACTIVADO CON ?reserved=true) -->
+<!-- MENSAJE DE EXITO -->
 <th:block th:if="${param.reserved}">
     <div class="success-banner">
-        <i class="bi bi-check-circle-fill fs-1 me-3"></i>
-        ¡Turno reservado con éxito! Actualizando calendario...
+        <i class="bi bi-check-circle-fill me-3"></i>
+        Turno reservado con exito. Actualizando calendario...
     </div>
-
     <script>
         setTimeout(() => {
-          // Recarga limpia (sin parámetros) para que se vean los nuevos turnos
-          window.location.href = window.location.pathname;
+            window.location.href = window.location.pathname;
         }, 2500);
     </script>
 </th:block>
 
+<!-- MENSAJE DE ERROR -->
+<th:block th:if="${error}">
+    <div class="error-banner">
+        <i class="bi bi-exclamation-triangle-fill me-3"></i>
+        <span th:text="${error}">Error</span>
+    </div>
+</th:block>
+
 <div class="booking-wrapper">
-    <div class="card-main">
+    <div class="booking-card">
 
         <!-- HEADER -->
-        <div class="header">
-            <img src="https://via.placeholder.com/140/667eea/ffffff?text=BE" alt="Logo" class="logo-img">
-            <h1 th:text="${config.businessName}">Belen</h1>
-            <p>Selecciona el servicio y el horario que prefieras</p>
+        <div class="booking-header">
+            <div class="logo-placeholder">
+                <span th:text="${#strings.substring(config.businessName, 0, 2).toUpperCase()}">NE</span>
+            </div>
+            <h1 th:text="${config.businessName}">Mi Negocio</h1>
+            <p>Reserva tu cita en 3 simples pasos</p>
+        </div>
+
+        <!-- INDICADOR DE PROGRESO -->
+        <div class="booking-progress">
+            <div class="progress-step active" data-step="1">
+                <span class="step-number">1</span>
+                <span class="step-label">Servicio</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" data-step="2">
+                <span class="step-number">2</span>
+                <span class="step-label">Fecha y hora</span>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step" data-step="3">
+                <span class="step-number">3</span>
+                <span class="step-label">Confirmar</span>
+            </div>
         </div>
 
         <!-- PASO 1: SERVICIOS -->
         <div id="step1" class="step active">
-            <div class="services">
+            <div class="services-section">
                 <div class="container">
-                    <h3 class="text-center mb-5 fw-bold text-primary">¿Qué servicio necesitas?</h3>
-                    <div class="row g-4 justify-content-center">
+                    <h3>Que servicio necesitas?</h3>
+
+                    <!-- Servicios dinamicos -->
+                    <div th:if="${services != null and !services.isEmpty()}" class="services-grid">
+                        <div th:each="service, iter : ${services}"
+                             class="service-card-enhanced"
+                             th:classappend="${iter.index == 0} ? 'active' : ''"
+                             th:data-duration="${service.durationMinutes}"
+                             th:data-service-id="${service.id}"
+                             th:data-price="${service.price}"
+                             th:data-name="${service.name}">
+                            <div class="service-icon" th:style="'background-color: ' + ${service.color}">
+                                <i th:class="${service.icon}"></i>
+                            </div>
+                            <div class="service-info">
+                                <h4 th:text="${service.name}">Servicio</h4>
+                                <p class="service-description" th:if="${service.description}" th:text="${service.description}">Descripcion del servicio</p>
+                                <div class="service-meta">
+                                    <span class="duration">
+                                        <i class="bi bi-clock me-1"></i>
+                                        <span th:text="${service.durationMinutes}">30</span> min
+                                    </span>
+                                    <span th:if="${service.price}" class="price">
+                                        <span th:text="${#numbers.formatDecimal(service.price, 1, 2)}">25</span> EUR
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="service-check">
+                                <i class="bi bi-check-circle-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Servicios por defecto si no hay configurados -->
+                    <div th:if="${services == null or services.isEmpty()}" class="row g-4 justify-content-center">
                         <div class="col-md-4">
-                            <div class="service-card p-5 text-center active" data-duration="30">
-                                <i class="bi bi-scissors display-4 text-primary mb-3"></i>
-                                <h5>Corte de cabello</h5>
-                                <p class="text-muted mb-2">30 minutos</p>
-                                <strong class="fs-4 text-primary">25€</strong>
+                            <div class="service-card active" data-duration="30">
+                                <div class="icon"><i class="bi bi-scissors"></i></div>
+                                <h5>Consulta rapida</h5>
+                                <p class="duration">30 minutos</p>
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="service-card p-5 text-center" data-duration="60">
-                                <i class="bi bi-person-badge display-4 text-primary mb-3"></i>
-                                <h5>Corte + Barba</h5>
-                                <p class="text-muted mb-2">60 minutos</p>
-                                <strong class="fs-4 text-primary">40€</strong>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="service-card p-5 text-center" data-duration="90">
-                                <i class="bi bi-stars display-4 text-primary mb-3"></i>
-                                <h5>Tratamiento completo</h5>
-                                <p class="text-muted mb-2">90 minutos</p>
-                                <strong class="fs-4 text-primary">70€</strong>
+                            <div class="service-card" data-duration="60">
+                                <div class="icon"><i class="bi bi-person-badge"></i></div>
+                                <h5>Consulta estandar</h5>
+                                <p class="duration">60 minutos</p>
                             </div>
                         </div>
                     </div>
@@ -149,139 +129,427 @@
             </div>
         </div>
 
-        <!-- CALENDARIO – SIEMPRE VISIBLE -->
-        <div class="calendar-container">
+        <!-- CALENDARIO -->
+        <div class="calendar-section">
+            <h3>Selecciona fecha y hora</h3>
+
+            <!-- Leyenda de bloqueos -->
+            <div class="blocked-legend" th:if="${not #lists.isEmpty(blockedSlots)}">
+                <span class="legend-title"><i class="bi bi-info-circle me-1"></i>Leyenda:</span>
+                <div class="legend-items">
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #C45C4A;"></span>
+                        Ocupado
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #10B981;"></span>
+                        Vacaciones
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #F59E0B;"></span>
+                        Descanso
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #3B82F6;"></span>
+                        Reunion
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #EF4444;"></span>
+                        Festivo
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #6B7280;"></span>
+                        Otro
+                    </span>
+                </div>
+            </div>
+
             <div id="calendar"></div>
         </div>
 
         <!-- PASO 2: FORMULARIO -->
         <div id="step2" class="step">
-            <div class="container py-5">
-                <h2 class="text-center mb-5 fw-bold">Confirma tu reserva</h2>
-                <form th:action="@{'/public/book/' + ${config.slug}}" method="post" class="row g-4 justify-content-center">
+            <div class="booking-form-section">
+                <!-- Resumen de la reserva -->
+                <div class="booking-summary">
+                    <h3><i class="bi bi-clipboard-check me-2"></i>Resumen de tu reserva</h3>
+                    <div class="summary-card">
+                        <div class="summary-item">
+                            <i class="bi bi-tag"></i>
+                            <div>
+                                <span class="label">Servicio</span>
+                                <span class="value" id="summaryService">-</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <i class="bi bi-calendar3"></i>
+                            <div>
+                                <span class="label">Fecha</span>
+                                <span class="value" id="summaryDate">-</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <i class="bi bi-clock"></i>
+                            <div>
+                                <span class="label">Hora</span>
+                                <span class="value" id="summaryTime">-</span>
+                            </div>
+                        </div>
+                        <div class="summary-item" id="summaryPriceRow" style="display: none;">
+                            <i class="bi bi-currency-euro"></i>
+                            <div>
+                                <span class="label">Precio</span>
+                                <span class="value" id="summaryPrice">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2>Completa tus datos</h2>
+                <form th:action="@{'/public/book/' + ${config.slug}}" method="post" class="booking-form">
                     <input type="hidden" name="date" id="finalDate">
                     <input type="hidden" name="time" id="finalTime">
                     <input type="hidden" name="duration" id="finalDuration">
+                    <input type="hidden" name="serviceId" id="finalServiceId">
 
-                    <div class="col-lg-7">
-                        <label class="form-label fw-bold fs-5">Nombre completo *</label>
-                        <input type="text" name="clientName" class="form-control form-control-lg rounded-3" required>
+                    <div class="mb-4">
+                        <label class="form-label">Nombre completo *</label>
+                        <input type="text" name="clientName" class="form-control" placeholder="Tu nombre" required>
                     </div>
-                    <div class="col-lg-7">
-                        <label class="form-label fw-bold fs-5">Teléfono (WhatsApp) *</label>
-                        <input type="tel" name="clientPhone" class="form-control form-control-lg rounded-3" required>
+
+                    <div class="mb-4">
+                        <label class="form-label">Telefono (WhatsApp) *</label>
+                        <input type="tel" name="clientPhone" class="form-control" placeholder="+34 600 123 456" required>
                     </div>
-                    <div class="col-lg-7">
-                        <label class="form-label fs-5">Email (opcional)</label>
-                        <input type="email" name="clientEmail" class="form-control rounded-3">
+
+                    <div class="mb-4">
+                        <label class="form-label">Email (opcional)</label>
+                        <input type="email" name="clientEmail" class="form-control" placeholder="tu@email.com">
                     </div>
-                    <div class="col-lg-7">
-                        <label class="form-label fs-5">Notas</label>
-                        <textarea name="notes" class="form-control rounded-3" rows="4" placeholder="Ej: Quiero el mismo estilo de la última vez"></textarea>
+
+                    <div class="mb-4">
+                        <label class="form-label">Notas (opcional)</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Ej: Quiero el mismo estilo de la ultima vez"></textarea>
                     </div>
-                    <div class="col-lg-7 text-center mt-4">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-5 py-3 me-3" onclick="backToCalendar()">Atrás</button>
-                        <button type="submit" class="btn btn-success btn-lg rounded-pill px-7 py-4 fw-bold">Confirmar reserva</button>
+
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <button type="button" class="btn btn-back" onclick="backToCalendar()">
+                            <i class="bi bi-arrow-left me-2"></i>Atras
+                        </button>
+                        <button type="submit" class="btn btn-submit">
+                            <i class="bi bi-check-circle me-2"></i>Confirmar reserva
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
 
+        <!-- FOOTER -->
+        <div class="booking-footer">
+            <p>Powered by <a href="#">TurnoFacil</a></p>
+        </div>
+
     </div>
 </div>
 
-<!-- SCRIPT 100% FUNCIONANDO -->
 <script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function () {
         const calendarEl = document.getElementById('calendar');
         let selectedDuration = 30;
+        let selectedServiceId = null;
 
-        // SELECCIÓN DE SERVICIO
-        document.querySelectorAll('.service-card').forEach(card => {
+        // Variables para el resumen
+        let selectedServiceName = '';
+        let selectedPrice = 0;
+        let selectedDate = '';
+        let selectedTime = '';
+
+        // Obtener duracion del primer servicio activo
+        const firstActiveService = document.querySelector('.service-card-enhanced.active, .service-card.active');
+        if (firstActiveService) {
+            selectedDuration = parseInt(firstActiveService.dataset.duration) || 30;
+            selectedServiceId = firstActiveService.dataset.serviceId || null;
+            selectedServiceName = firstActiveService.dataset.name || firstActiveService.querySelector('h4, h5')?.textContent || 'Servicio';
+            selectedPrice = parseFloat(firstActiveService.dataset.price) || 0;
+        }
+
+        // SELECCION DE SERVICIO (nuevo estilo)
+        document.querySelectorAll('.service-card-enhanced, .service-card').forEach(card => {
             card.addEventListener('click', function () {
-                document.querySelectorAll('.service-card').forEach(c => c.classList.remove('active'));
+                document.querySelectorAll('.service-card-enhanced, .service-card').forEach(c => c.classList.remove('active'));
                 this.classList.add('active');
-                selectedDuration = parseInt(this.dataset.duration);
+                selectedDuration = parseInt(this.dataset.duration) || 30;
+                selectedServiceId = this.dataset.serviceId || null;
+                selectedServiceName = this.dataset.name || this.querySelector('h4, h5')?.textContent || 'Servicio';
+                selectedPrice = parseFloat(this.dataset.price) || 0;
             });
         });
 
         // TURNOS OCUPADOS
         const occupiedEvents = [[${occupiedAppointments}]];
 
-        // DEBUG: Ver qué turnos están ocupados
-        console.log('Turnos ocupados cargados:', occupiedEvents);
-        console.log('Total de turnos:', occupiedEvents.length);
+        // BLOQUEOS DE HORARIO
+        const blockedSlots = [[${blockedSlots}]];
 
-        // DÍAS DE TRABAJO
-        const workingDaysStr = /*[[ ${config.workingDays} ]] */ '1,2,3,4,5';
+        // DIAS DE TRABAJO
+        const workingDaysStr = /*[[ ${config.workingDays} ]]*/ '1,2,3,4,5';
         const workingDays = workingDaysStr.split(',').map(s => parseInt(s.trim()));
+
+        // Convertir turnos ocupados a eventos de calendario
+        const occupiedCalendarEvents = occupiedEvents.map(a => ({
+            title: 'NO DISPONIBLE',
+            start: a.start,
+            end: a.end,
+            allDay: false,
+            backgroundColor: '#C45C4A',
+            borderColor: '#A94A3A',
+            textColor: '#ffffff',
+            classNames: ['occupied-slot'],
+            editable: false,
+            display: 'block'
+        }));
+
+        // Convertir bloqueos a eventos de calendario
+        const blockedCalendarEvents = blockedSlots.flatMap(b => {
+            const events = [];
+            const startDate = new Date(b.startDate);
+            const endDate = new Date(b.endDate);
+
+            // Clase CSS basada en el tipo de bloqueo
+            const typeClass = 'blocked-' + (b.type || 'custom').toLowerCase();
+
+            // Iterar por cada dia del bloqueo
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+
+                if (b.allDay) {
+                    // Evento de fondo para dia completo
+                    events.push({
+                        title: b.title,
+                        start: dateStr,
+                        allDay: true,
+                        backgroundColor: b.color || '#6B7280',
+                        borderColor: b.color || '#6B7280',
+                        textColor: '#ffffff',
+                        classNames: ['blocked-slot', typeClass],
+                        editable: false,
+                        display: 'background'
+                    });
+                    // Indicador visible en vista mes
+                    events.push({
+                        title: b.title,
+                        start: dateStr,
+                        allDay: true,
+                        backgroundColor: b.color || '#6B7280',
+                        borderColor: b.color || '#6B7280',
+                        textColor: '#ffffff',
+                        classNames: ['blocked-slot', typeClass, 'blocked-indicator'],
+                        editable: false,
+                        display: 'block'
+                    });
+                } else if (b.startTime && b.endTime) {
+                    events.push({
+                        title: b.title,
+                        start: dateStr + 'T' + b.startTime,
+                        end: dateStr + 'T' + b.endTime,
+                        allDay: false,
+                        backgroundColor: b.color || '#6B7280',
+                        borderColor: b.color || '#6B7280',
+                        textColor: '#ffffff',
+                        classNames: ['blocked-slot', typeClass],
+                        editable: false,
+                        display: 'block'
+                    });
+                }
+            }
+            return events;
+        });
+
+        // Combinar todos los eventos
+        const allEvents = [...occupiedCalendarEvents, ...blockedCalendarEvents];
 
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'timeGridWeek',
-            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' },
-            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día' },
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dia' },
             locale: 'es',
             validRange: { start: new Date() },
             businessHours: {
                 daysOfWeek: workingDays,
-                startTime: /*[[ ${config.openingTime} ]] */ '09:00',
-                endTime: /*[[ ${config.closingTime} ]] */ '20:00'
+                startTime: /*[[ ${config.openingTime} ]]*/ '09:00',
+                endTime: /*[[ ${config.closingTime} ]]*/ '20:00'
             },
-            slotDuration: '00:' + selectedDuration + ':00',
-            slotMinTime: /*[[ ${config.openingTime} ]] */ '09:00',
-            slotMaxTime: /*[[ ${config.closingTime} ]] */ '20:00',
-            height: 850,
+            slotDuration: '00:30:00',
+            slotMinTime: /*[[ ${config.openingTime} ]]*/ '09:00',
+            slotMaxTime: /*[[ ${config.closingTime} ]]*/ '20:00',
+            height: 700,
             nowIndicator: true,
-            events: occupiedEvents.map(a => ({
-                title: '🚫 NO DISPONIBLE',
-                start: a.start,
-                allDay: false,
-                backgroundColor: '#ff4757',
-                borderColor: '#e84118',
-                textColor: '#ffffff',
-                classNames: ['occupied-slot'],
-                editable: false,
-                display: 'block'
-            })),
+            events: allEvents,
 
             dateClick: function (info) {
                 if (info.dayEl.classList.contains('fc-day-disabled')) return;
 
                 const clickedTime = info.dateStr;
+                const clickStart = new Date(clickedTime);
+                const clickEnd = new Date(clickStart.getTime() + selectedDuration * 60000);
 
-                // Verificar si el horario está ocupado
-                const isOccupied = occupiedEvents.some(e => {
-                    const eventStart = new Date(e.start);
-                    const clickStart = new Date(clickedTime);
-                    return eventStart.getTime() === clickStart.getTime();
-                });
+                // Verificar si esta ocupado o bloqueado
+                const isBlocked = isTimeSlotBlocked(clickStart, clickEnd, occupiedEvents, blockedSlots);
 
-                if (isOccupied) {
-                    alert('⚠️ Este horario ya está ocupado. Por favor, elige otro.');
+                if (isBlocked) {
+                    showBookingAlert('Este horario no esta disponible. Por favor, elige otro.');
                     return;
                 }
 
                 const date = info.dateStr.split('T')[0];
                 const time = info.dateStr.split('T')[1]?.substring(0, 5) || info.date.toTimeString().substring(0, 5);
 
+                selectedDate = date;
+                selectedTime = time;
+
                 document.getElementById('finalDate').value = date;
                 document.getElementById('finalTime').value = time;
                 document.getElementById('finalDuration').value = selectedDuration;
+                document.getElementById('finalServiceId').value = selectedServiceId || '';
+
+                // Actualizar resumen
+                updateBookingSummary();
+
+                // Actualizar indicador de progreso
+                updateProgress(3);
 
                 document.getElementById('step1').classList.remove('active');
                 document.getElementById('step2').classList.add('active');
+
+                document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
             }
         });
         calendar.render();
+
+        // Funcion para verificar si un slot esta bloqueado
+        function isTimeSlotBlocked(start, end, occupied, blocked) {
+            // Verificar turnos ocupados
+            for (const event of occupied) {
+                const eventStart = new Date(event.start);
+                const eventEnd = event.end ? new Date(event.end) : new Date(eventStart.getTime() + (event.duration || 30) * 60000);
+                if (start < eventEnd && end > eventStart) {
+                    return true;
+                }
+            }
+
+            // Verificar bloqueos
+            const dateStr = start.toISOString().split('T')[0];
+            const timeStr = start.toTimeString().substring(0, 5);
+
+            for (const block of blocked) {
+                const blockStart = block.startDate;
+                const blockEnd = block.endDate;
+
+                if (dateStr >= blockStart && dateStr <= blockEnd) {
+                    if (block.allDay) {
+                        return true;
+                    } else if (block.startTime && block.endTime) {
+                        if (timeStr >= block.startTime && timeStr < block.endTime) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
     });
 
     function backToCalendar() {
         document.getElementById('step2').classList.remove('active');
         document.getElementById('step1').classList.add('active');
+        updateProgress(2);
+        document.querySelector('.calendar-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function updateProgress(step) {
+        document.querySelectorAll('.progress-step').forEach((el, index) => {
+            el.classList.remove('active', 'completed');
+            if (index + 1 < step) {
+                el.classList.add('completed');
+            } else if (index + 1 === step) {
+                el.classList.add('active');
+            }
+        });
+    }
+
+    function updateBookingSummary() {
+        // Obtener servicio seleccionado
+        const activeService = document.querySelector('.service-card-enhanced.active, .service-card.active');
+        if (activeService) {
+            const serviceName = activeService.dataset.name || activeService.querySelector('h4, h5')?.textContent || 'Servicio';
+            document.getElementById('summaryService').textContent = serviceName;
+
+            const price = parseFloat(activeService.dataset.price) || 0;
+            if (price > 0) {
+                document.getElementById('summaryPrice').textContent = price.toFixed(2) + ' EUR';
+                document.getElementById('summaryPriceRow').style.display = 'flex';
+            } else {
+                document.getElementById('summaryPriceRow').style.display = 'none';
+            }
+        }
+
+        // Fecha
+        const dateInput = document.getElementById('finalDate').value;
+        if (dateInput) {
+            document.getElementById('summaryDate').textContent = formatDateSpanish(dateInput);
+        }
+
+        // Hora
+        const timeInput = document.getElementById('finalTime').value;
+        if (timeInput) {
+            document.getElementById('summaryTime').textContent = timeInput + 'h';
+        }
+    }
+
+    function formatDateSpanish(dateStr) {
+        const days = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+        const months = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        const date = new Date(dateStr + 'T12:00:00');
+        return `${days[date.getDay()]}, ${date.getDate()} de ${months[date.getMonth()]}`;
+    }
+
+    function showBookingAlert(message) {
+        // Crear alerta temporal
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'booking-alert';
+        alertDiv.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i>${message}`;
+        document.body.appendChild(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.classList.add('fade-out');
+            setTimeout(() => alertDiv.remove(), 300);
+        }, 3000);
     }
     /*]]>*/
 </script>
+
+<style>
+    .error-banner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        font-size: 18px;
+        z-index: 9999;
+        animation: slideDown 0.5s ease-out;
+    }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>

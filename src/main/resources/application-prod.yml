@@ -1,0 +1,79 @@
+# ========================================
+# PERFIL DE PRODUCCION
+# Activa con: SPRING_PROFILES_ACTIVE=prod
+# ========================================
+
+spring:
+  datasource:
+    # OBLIGATORIO: Configurar via variables de entorno
+    # DB_URL, DB_USERNAME, DB_PASSWORD
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate  # NUNCA usar update/create en produccion
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        # Optimizaciones de produccion
+        jdbc:
+          batch_size: 25
+        order_inserts: true
+        order_updates: true
+
+  thymeleaf:
+    cache: true
+
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+
+# ========================================
+# APP CONFIG - Produccion
+# ========================================
+app:
+  email:
+    enabled: true
+  show-error-details: false
+
+# ========================================
+# LOGGING - Minimo para produccion
+# ========================================
+logging:
+  level:
+    root: WARN
+    com.turnofacil: INFO
+    org.hibernate.SQL: OFF
+    org.hibernate.type.descriptor.sql: OFF
+    org.thymeleaf: WARN
+    org.springframework.security: WARN
+
+# ========================================
+# SERVER - Produccion seguro
+# ========================================
+server:
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+  servlet:
+    session:
+      timeout: 30m
+      cookie:
+        http-only: true
+        secure: true
+        same-site: strict
+  # Compresion
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024

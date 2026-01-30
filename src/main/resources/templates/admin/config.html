@@ -1,116 +1,184 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
-  <th:block th:replace="fragments/head :: favicons" />
-  <meta charset="UTF-8">
-  <title>Configuración – TurnoFácil</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
-  <link th:replace="fragments/navbar :: navbar-css">
-  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <th:block th:replace="~{fragments/head :: favicons}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Configuración – TurnoFácil</title>
 
-  <style>
-    body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-    .card { border: none; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-    .card-header { background: linear-gradient(45deg, #667eea, #764ba2); color: white; padding: 2rem; }
-    .btn-back { background: rgba(255,255,255,0.2); border: none; color: white; }
-    .btn-back:hover { background: rgba(255,255,255,0.3); }
-    .form-control, .form-select { border-radius: 12px; padding: 0.75rem 1rem; }
-    .btn-save { border-radius: 50px; padding: 0.75rem 3rem; font-weight: bold; }
-  </style>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- TurnoFácil Theme -->
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
 </head>
-<body>
+<body class="admin-page">
+
 <!-- NAVBAR -->
-<div th:replace="fragments/navbar :: navbar"></div>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="card">
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="admin-card">
 
-        <!-- CABECERA + BOTÓN VOLVER -->
-        <div class="card-header text-white">
-          <div class="d-flex align-items-center justify-content-between">
-            <div>
-              <h2 class="mb-1">Configuración del negocio</h2>
-              <p class="mb-0 opacity-90">Personaliza horarios, nombre y disponibilidad</p>
+                <!-- CABECERA -->
+                <div class="admin-card-header">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <h2 class="mb-1">
+                                <i class="bi bi-gear me-2"></i>
+                                Configuración del negocio
+                            </h2>
+                            <p class="mb-0 opacity-90">Personaliza horarios, nombre y disponibilidad</p>
+                        </div>
+                        <a th:href="@{/admin/dashboard}" class="btn btn-logout">
+                            <i class="bi bi-arrow-left me-2"></i>Volver al dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <div class="admin-card-body">
+
+                    <!-- MENSAJE DE ÉXITO -->
+                    <div th:if="${success}" class="admin-alert admin-alert-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span th:text="${success}">Cambios guardados</span>
+                    </div>
+
+                    <!-- MENSAJE DE ERROR -->
+                    <div th:if="${error}" class="admin-alert admin-alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${error}">Error</span>
+                    </div>
+
+                    <!-- MENSAJE DE ÉXITO POR PARAM -->
+                    <div th:if="${param.updated}" class="admin-alert admin-alert-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>¡Configuración guardada correctamente!</span>
+                    </div>
+
+                    <form th:action="@{/admin/config}" th:object="${businessConfig}" method="post" class="admin-form">
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-building me-1"></i>
+                                Nombre del negocio
+                            </label>
+                            <input type="text" class="form-control form-control-lg" th:field="*{businessName}" required>
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="bi bi-sunrise me-1"></i>
+                                    Hora de apertura
+                                </label>
+                                <input type="time" class="form-control form-control-lg" th:field="*{openingTime}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    <i class="bi bi-sunset me-1"></i>
+                                    Hora de cierre
+                                </label>
+                                <input type="time" class="form-control form-control-lg" th:field="*{closingTime}" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-clock me-1"></i>
+                                Duración de cada turno
+                            </label>
+                            <select class="form-select form-select-lg" th:field="*{slotDurationMinutes}">
+                                <option value="15">15 minutos</option>
+                                <option value="30">30 minutos</option>
+                                <option value="45">45 minutos</option>
+                                <option value="60">60 minutos</option>
+                                <option value="90">90 minutos</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-week me-1"></i>
+                                Días laborables
+                            </label>
+                            <input type="text" class="form-control form-control-lg" th:field="*{workingDays}"
+                                   placeholder="Ej: 1,2,3,4,5,6" required>
+                            <small class="form-text">
+                                1=Lunes, 2=Martes, 3=Miércoles, 4=Jueves, 5=Viernes, 6=Sábado, 7=Domingo (separados por comas)
+                            </small>
+                        </div>
+
+                        <!-- Notificaciones por email -->
+                        <div class="mb-5 p-4 rounded-3" style="background: var(--tf-bg-secondary);">
+                            <h5 class="fw-bold mb-3" style="color: var(--tf-brand);">
+                                <i class="bi bi-envelope me-2"></i>
+                                Notificaciones por email
+                            </h5>
+
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       th:field="*{receiveEmailNotifications}" id="emailNotifications">
+                                <label class="form-check-label" for="emailNotifications">
+                                    Recibir notificaciones por email cuando un cliente reserve
+                                </label>
+                            </div>
+                            <small class="form-text d-block mt-2">
+                                Si esta activo, recibiras un email cada vez que alguien haga una reserva
+                            </small>
+
+                            <div class="form-check form-switch mt-3">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       th:field="*{enableReminders}" id="enableReminders">
+                                <label class="form-check-label" for="enableReminders">
+                                    Enviar recordatorios automaticos a los clientes
+                                </label>
+                            </div>
+                            <small class="form-text d-block mt-2">
+                                Se enviara un recordatorio al cliente 24 horas antes de su turno
+                            </small>
+                        </div>
+
+                        <!-- Info del slug -->
+                        <div class="mb-5 p-4 rounded-3" style="background: var(--tf-bg-secondary);">
+                            <label class="form-label">
+                                <i class="bi bi-link-45deg me-1"></i>
+                                URL de tu página pública
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text" style="background: white;">
+                                    <i class="bi bi-globe"></i>
+                                </span>
+                                <input type="text" class="form-control"
+                                       th:value="@{|/public/book/${businessConfig.slug}|}" readonly
+                                       style="background: white;">
+                            </div>
+                            <small class="form-text">
+                                Este enlace se actualiza automáticamente cuando cambias el nombre del negocio
+                            </small>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-admin-success btn-lg px-5">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Guardar cambios
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
             </div>
-            <a th:href="@{/admin/dashboard}" class="btn btn-back btn-lg">
-              <i class="bi bi-arrow-left me-2"></i>Volver al dashboard
-            </a>
-          </div>
         </div>
-        <!-- MENSAJE DE ÉXITO -->
-        <div th:if="${success}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-          <i class="bi bi-check-circle-fill me-2"></i>
-          <strong th:text="${success}"></strong>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
-        <!-- MENSAJE DE ERROR GENERAL -->
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          <strong th:text="${error}"></strong>
-          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
-        <div class="card-body p-5">
-
-          <!-- MENSAJE DE ÉXITO -->
-          <div th:if="${param.updated}" class="alert alert-success text-center mb-4">
-            ¡Configuración guardada correctamente!
-          </div>
-
-          <form th:action="@{/admin/config}" th:object="${businessConfig}" method="post">
-
-            <div class="mb-4">
-              <label class="form-label fw-bold">Nombre del negocio</label>
-              <input type="text" class="form-control form-control-lg" th:field="*{businessName}" required>
-            </div>
-
-            <div class="row g-4 mb-4">
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Hora de apertura</label>
-                <input type="time" class="form-control form-control-lg" th:field="*{openingTime}" required>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label fw-bold">Hora de cierre</label>
-                <input type="time" class="form-control form-control-lg" th:field="*{closingTime}" required>
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label fw-bold">Duración de cada turno</label>
-              <select class="form-select form-select-lg" th:field="*{slotDurationMinutes}">
-                <option value="15">15 minutos</option>
-                <option value="30" selected>30 minutos</option>
-                <option value="45">45 minutos</option>
-                <option value="60">60 minutos</option>
-                <option value="90">90 minutos</option>
-              </select>
-            </div>
-
-            <div class="mb-5">
-              <label class="form-label fw-bold">Días laborables</label>
-              <input type="text" class="form-control form-control-lg" th:field="*{workingDays}"
-                     placeholder="Ej: 1,2,3,4,5,6" required>
-              <small class="text-muted">1=Lunes, 2=Martes... separados por comas (sin espacios)</small>
-            </div>
-
-            <div class="text-center">
-              <button type="submit" class="btn btn-success btn-save btn-lg">
-                Guardar cambios
-              </button>
-            </div>
-          </form>
-
-        </div>
-      </div>
     </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/notifications.js}"></script>
+
 </body>
 </html>

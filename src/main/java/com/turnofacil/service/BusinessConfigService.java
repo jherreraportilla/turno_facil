@@ -23,7 +23,9 @@ public class BusinessConfigService {
         BusinessConfig config = new BusinessConfig();
         config.setUser(user);
         // valores por defecto (puedes cambiarlos después)
-        config.setBusinessName(user.getEmail().split("@")[0] + " - Turnos");
+        String businessName = user.getEmail().split("@")[0] + " - Turnos";
+        config.setBusinessName(businessName);
+        config.setSlug(generateUniqueSlug(businessName, null));
         config.setSlotDurationMinutes(30);
         config.setOpeningTime("09:00");
         config.setClosingTime("20:00");
@@ -56,9 +58,34 @@ public class BusinessConfigService {
         existing.setSlotDurationMinutes(updatedConfig.getSlotDurationMinutes());
         existing.setWorkingDays(updatedConfig.getWorkingDays());
         existing.setTimezone(updatedConfig.getTimezone());
-        existing.setSlug(SlugUtils.toSlug(updatedConfig.getBusinessName()));
-        // aquí puedes añadir más campos en el futuro
+        existing.setSlug(generateUniqueSlug(updatedConfig.getBusinessName(), existing.getId()));
+        existing.setReceiveEmailNotifications(updatedConfig.isReceiveEmailNotifications());
+        existing.setEnableReminders(updatedConfig.isEnableReminders());
 
         return configRepo.save(existing);
+    }
+
+    /**
+     * Genera un slug único basado en el nombre del negocio.
+     * @param businessName nombre del negocio
+     * @param currentConfigId ID del config actual (para excluirlo de la búsqueda de duplicados), null si es nuevo
+     * @return slug único
+     */
+    private String generateUniqueSlug(String businessName, Long currentConfigId) {
+        String baseSlug = SlugUtils.toSlug(businessName);
+        String slug = baseSlug;
+        int counter = 1;
+
+        while (true) {
+            Optional<BusinessConfig> existing = configRepo.findBySlug(slug);
+            // Si no existe o es el mismo registro que estamos editando, el slug es válido
+            if (existing.isEmpty() || (currentConfigId != null && existing.get().getId().equals(currentConfigId))) {
+                break;
+            }
+            slug = baseSlug + "-" + counter;
+            counter++;
+        }
+
+        return slug;
     }
 }
