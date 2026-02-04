@@ -2,8 +2,6 @@ package com.turnofacil.repository;
 
 import com.turnofacil.model.Invoice;
 import com.turnofacil.model.enums.InvoiceStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,8 +20,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
 
     List<Invoice> findByBusinessIdOrderByIssueDateDesc(Long businessId);
-
-    Page<Invoice> findByBusinessId(Long businessId, Pageable pageable);
 
     List<Invoice> findByBusinessIdAndStatus(Long businessId, InvoiceStatus status);
 

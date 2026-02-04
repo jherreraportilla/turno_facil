@@ -121,51 +121,95 @@
             <!-- Tabla de facturas -->
             <div th:if="${#lists.isEmpty(invoices)}" class="text-center py-5">
                 <i class="bi bi-receipt display-1 text-muted"></i>
-                <h4 class="mt-3">No hay facturas todavía</h4>
+                <h4 class="mt-3">No hay facturas todavia</h4>
                 <p class="text-muted">Las facturas se crean desde las citas completadas</p>
             </div>
 
-            <div th:unless="${#lists.isEmpty(invoices)}" class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Numero</th>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th class="text-end">Total</th>
-                            <th class="text-center">Estado</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="invoice : ${invoices}">
-                            <td>
-                                <a th:href="@{/admin/invoices/{id}(id=${invoice.id()})}"
-                                   class="fw-bold text-decoration-none" style="color: var(--tf-brand);">
-                                    <span th:text="${invoice.invoiceNumber()}">TF-2025-00001</span>
-                                </a>
-                            </td>
-                            <td th:text="${#temporals.format(invoice.issueDate(), 'dd/MM/yyyy')}">01/01/2025</td>
-                            <td>
-                                <span th:text="${invoice.clientName()}">Cliente</span>
-                                <br>
-                                <small class="text-muted" th:text="${invoice.clientEmail()}">email@ejemplo.com</small>
-                            </td>
-                            <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(invoice.total(), 1, 2)} + ' €'">0.00 €</td>
-                            <td class="text-center">
-                                <span class="badge"
-                                      th:classappend="${invoice.status().getBadgeClass()}"
-                                      th:text="${invoice.status().getDisplayName()}">Estado</span>
-                            </td>
-                            <td class="text-center">
-                                <a th:href="@{/admin/invoices/{id}(id=${invoice.id()})}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div th:unless="${#lists.isEmpty(invoices)}">
+                <!-- Controles de tabla -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="mb-0 text-muted small">Mostrar</label>
+                        <select class="form-select form-select-sm" id="pageSize" style="width: auto;">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                        <label class="mb-0 text-muted small">registros</label>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select class="form-select form-select-sm" id="statusFilter" style="width: auto;">
+                            <option value="">Todos los estados</option>
+                            <option value="DRAFT">Borrador</option>
+                            <option value="ISSUED">Emitida</option>
+                            <option value="PAID">Pagada</option>
+                            <option value="CANCELLED">Anulada</option>
+                        </select>
+                        <div class="input-group input-group-sm" style="width: 200px;">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="searchInput"
+                                   placeholder="Buscar...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table" id="invoicesTable">
+                        <thead>
+                            <tr>
+                                <th>Numero</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoices-body">
+                            <tr th:each="invoice : ${invoices}" th:data-status="${invoice.status().name()}">
+                                <td>
+                                    <a th:href="@{/admin/invoices/{id}(id=${invoice.id()})}"
+                                       class="fw-bold text-decoration-none" style="color: var(--tf-brand);">
+                                        <span th:text="${invoice.invoiceNumber()}">TF-2025-00001</span>
+                                    </a>
+                                </td>
+                                <td th:text="${#temporals.format(invoice.issueDate(), 'dd/MM/yyyy')}">01/01/2025</td>
+                                <td>
+                                    <span th:text="${invoice.clientName()}">Cliente</span>
+                                    <br>
+                                    <small class="text-muted" th:text="${invoice.clientEmail()}">email@ejemplo.com</small>
+                                </td>
+                                <td class="text-end fw-bold" th:text="${#numbers.formatDecimal(invoice.total(), 1, 2)} + ' €'">0.00 €</td>
+                                <td class="text-center">
+                                    <span class="badge"
+                                          th:classappend="${invoice.status().getBadgeClass()}"
+                                          th:text="${invoice.status().getDisplayName()}">Estado</span>
+                                </td>
+                                <td class="text-center">
+                                    <a th:href="@{/admin/invoices/{id}(id=${invoice.id()})}"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginacion -->
+                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3" id="paginationContainer">
+                    <div class="text-muted small">
+                        Mostrando <strong id="showingFrom">1</strong>
+                        a <strong id="showingTo">5</strong>
+                        de <strong id="totalRecords" th:text="${invoices.size()}">0</strong> registros
+                    </div>
+                    <nav>
+                        <ul class="pagination admin-pagination mb-0" id="paginationNav"></ul>
+                    </nav>
+                </div>
             </div>
 
         </div>
@@ -188,6 +232,103 @@
                     .format(data.totalInvoiced || 0);
         })
         .catch(e => console.error('Error cargando estadísticas:', e));
+
+    // Paginacion client-side
+    let tablePagination = {
+        currentPage: 0,
+        pageSize: 5,
+        allRows: [],
+        filteredRows: []
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const tbody = document.getElementById('invoices-body');
+        if (!tbody) return;
+
+        tablePagination.allRows = Array.from(tbody.querySelectorAll('tr'));
+        tablePagination.filteredRows = [...tablePagination.allRows];
+
+        document.getElementById('pageSize')?.addEventListener('change', function() {
+            tablePagination.pageSize = parseInt(this.value);
+            tablePagination.currentPage = 0;
+            renderTablePage();
+        });
+
+        document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+        document.getElementById('statusFilter')?.addEventListener('change', applyFilters);
+
+        renderTablePage();
+    });
+
+    function applyFilters() {
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase().trim() || '';
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
+
+        tablePagination.filteredRows = tablePagination.allRows.filter(row => {
+            const matchesSearch = searchTerm === '' || row.textContent.toLowerCase().includes(searchTerm);
+            const matchesStatus = statusFilter === '' || row.dataset.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
+
+        tablePagination.currentPage = 0;
+        renderTablePage();
+    }
+
+    function renderTablePage() {
+        const { currentPage, pageSize, filteredRows, allRows } = tablePagination;
+        const totalRows = filteredRows.length;
+        const totalPages = Math.ceil(totalRows / pageSize);
+        const start = currentPage * pageSize;
+        const end = Math.min(start + pageSize, totalRows);
+
+        allRows.forEach(row => row.style.display = 'none');
+        for (let i = start; i < end; i++) {
+            filteredRows[i].style.display = '';
+        }
+
+        document.getElementById('showingFrom').textContent = totalRows > 0 ? start + 1 : 0;
+        document.getElementById('showingTo').textContent = end;
+        document.getElementById('totalRecords').textContent = totalRows;
+
+        renderPaginationButtons(totalPages);
+    }
+
+    function renderPaginationButtons(totalPages) {
+        const nav = document.getElementById('paginationNav');
+        if (!nav) return;
+
+        const { currentPage } = tablePagination;
+        let html = '';
+
+        html += `<li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage - 1}); return false;">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>`;
+
+        for (let i = 0; i < totalPages; i++) {
+            if (i === 0 || i === totalPages - 1 || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${i}); return false;">${i + 1}</a>
+                </li>`;
+            }
+        }
+
+        html += `<li class="page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage + 1}); return false;">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>`;
+
+        nav.innerHTML = html;
+    }
+
+    function goToPage(page) {
+        const totalPages = Math.ceil(tablePagination.filteredRows.length / tablePagination.pageSize);
+        if (page < 0 || page >= totalPages) return;
+        tablePagination.currentPage = page;
+        renderTablePage();
+    }
 </script>
 
 </body>

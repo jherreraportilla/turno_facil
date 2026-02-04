@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <th:block th:replace="~{fragments/head :: favicons}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Historial de Cliente – TurnoFácil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+</head>
+<body class="admin-page">
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4">
+    <h2 class="mb-4" style="color: var(--tf-text-primary);">
+        <i class="bi bi-clock-history me-2" style="color: var(--tf-brand);"></i>
+        Historial de Clientes
+    </h2>
+
+    <!-- Buscador -->
+    <div class="admin-card mb-4">
+        <div class="admin-card-body">
+            <form method="get" th:action="@{/admin/client-history}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-9">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-search me-1"></i>
+                            Buscar por nombre, telefono o email
+                        </label>
+                        <input type="text" class="form-control form-control-lg" name="search"
+                               th:value="${search}" placeholder="Ej: 612345678, juan@email.com, Juan Perez..."
+                               required minlength="3">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-admin-primary btn-lg w-100">
+                            <i class="bi bi-search me-2"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resultados de busqueda -->
+    <div th:if="${search != null && !search.isBlank()}" class="admin-card">
+        <div class="admin-card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="bi bi-list-ul me-2"></i>
+                Resultados para "<span th:text="${search}">busqueda</span>"
+            </h4>
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-light text-dark fs-6" th:text="${appointments.size()} + ' turnos'">0 turnos</span>
+                <a th:href="@{/admin/client-history}" class="btn btn-admin-secondary btn-sm">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar
+                </a>
+            </div>
+        </div>
+        <div class="admin-card-body">
+            <div th:if="${appointments.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-person-x display-1" style="color: var(--tf-text-tertiary);"></i>
+                <p class="mt-3 fs-5 text-muted">No se encontraron turnos para esta busqueda</p>
+            </div>
+
+            <div th:unless="${appointments.isEmpty()}">
+                <!-- Resumen del cliente -->
+                <div class="mb-4 p-3" style="background: var(--tf-bg-primary); border-radius: var(--tf-radius-lg); border: 1px solid var(--tf-border-light);">
+                    <div class="row g-3 text-center">
+                        <div class="col-md-3">
+                            <div class="fw-bold fs-4" style="color: var(--tf-brand);" th:text="${appointments.size()}">0</div>
+                            <small class="text-muted">Total turnos</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold fs-4" style="color: var(--tf-success);"
+                                 th:text="${countCompleted}">0</div>
+                            <small class="text-muted">Completados</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold fs-4" style="color: var(--tf-danger);"
+                                 th:text="${countCancelled}">0</div>
+                            <small class="text-muted">Cancelados</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold fs-4" style="color: var(--tf-text-secondary);"
+                                 th:text="${countNoShow}">0</div>
+                            <small class="text-muted">No se presento</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles de paginacion -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="mb-0 text-muted small">Mostrar</label>
+                        <select class="form-select form-select-sm" id="pageSize" style="width: auto;">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                        <label class="mb-0 text-muted small">registros</label>
+                    </div>
+                    <div style="max-width: 250px;">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="bi bi-filter"></i>
+                            </span>
+                            <input type="text" class="form-control border-start-0" id="tableFilter"
+                                   placeholder="Filtrar resultados...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="admin-table" id="appointmentsTable">
+                        <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Cliente</th>
+                            <th>Telefono</th>
+                            <th>Email</th>
+                            <th>Servicio</th>
+                            <th>Notas internas</th>
+                            <th>Estado</th>
+                        </tr>
+                        </thead>
+                        <tbody id="appointments-body">
+                        <tr th:each="a : ${appointments}">
+                            <td><strong th:text="${a.date}">2025-01-15</strong></td>
+                            <td th:text="${a.time}">10:00</td>
+                            <td th:text="${a.clientName}">Juan</td>
+                            <td>
+                                <a th:href="'https://wa.me/' + ${#strings.replace(a.clientPhone, ' ', '')?.replaceAll('[^0-9]', '')}"
+                                   target="_blank" class="text-decoration-none">
+                                    <i class="bi bi-whatsapp text-success me-1"></i>
+                                    <span th:text="${a.clientPhone}">600123456</span>
+                                </a>
+                            </td>
+                            <td th:text="${a.clientEmail ?: '-'}">email@test.com</td>
+                            <td th:text="${a.serviceName ?: '-'}">Servicio</td>
+                            <td>
+                                <span th:text="${a.internalNotes ?: '-'}"
+                                      style="display: inline-block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                      th:title="${a.internalNotes}">-</span>
+                            </td>
+                            <td>
+                                <span class="status-badge"
+                                      th:classappend="${a.status?.name()?.toLowerCase() ?: 'pending'}"
+                                      th:text="${a.status?.getDisplayName('es')} ?: 'Pendiente'">Pendiente</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginacion -->
+                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3" id="paginationContainer">
+                    <div class="text-muted small">
+                        Mostrando <strong id="showingFrom">1</strong>
+                        a <strong id="showingTo">5</strong>
+                        de <strong id="totalRecords" th:text="${appointments.size()}">0</strong> registros
+                    </div>
+                    <nav>
+                        <ul class="pagination admin-pagination mb-0" id="paginationNav"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado inicial: mostrar resumen y clientes recientes -->
+    <div th:if="${search == null || search.isBlank()}">
+        <!-- KPIs -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <div class="card-body text-center p-4">
+                        <div class="kpi-icon primary mx-auto mb-3">
+                            <i class="bi bi-people fs-2"></i>
+                        </div>
+                        <div class="kpi-value" th:text="${totalClients}">0</div>
+                        <div class="kpi-label">Total Clientes</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <div class="card-body text-center p-4">
+                        <div class="kpi-icon success mx-auto mb-3">
+                            <i class="bi bi-calendar-check fs-2"></i>
+                        </div>
+                        <div class="kpi-value" th:text="${totalAppointments}">0</div>
+                        <div class="kpi-label">Total Turnos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <div class="card-body text-center p-4">
+                        <div class="kpi-icon info mx-auto mb-3">
+                            <i class="bi bi-graph-up fs-2"></i>
+                        </div>
+                        <div class="kpi-value" th:text="${totalClients > 0 ? #numbers.formatDecimal(totalAppointments * 1.0 / totalClients, 1, 1) : '0'}">0</div>
+                        <div class="kpi-label">Turnos por Cliente</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Clientes Recientes -->
+            <div class="col-lg-7">
+                <div class="admin-card h-100">
+                    <div class="admin-card-header">
+                        <h4 class="mb-0">
+                            <i class="bi bi-clock-history me-2"></i>
+                            Clientes Recientes
+                        </h4>
+                    </div>
+                    <div class="admin-card-body">
+                        <div th:if="${recentClients.isEmpty()}" class="text-center py-4">
+                            <i class="bi bi-person-x display-4" style="color: var(--tf-text-tertiary);"></i>
+                            <p class="mt-2 text-muted">No hay clientes registrados todavia</p>
+                        </div>
+                        <div th:unless="${recentClients.isEmpty()}" class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Contacto</th>
+                                    <th>Ultima visita</th>
+                                    <th>Turnos</th>
+                                    <th></th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="client : ${recentClients}">
+                                    <td>
+                                        <strong th:text="${client.name}">Nombre</strong>
+                                    </td>
+                                    <td>
+                                        <a th:href="'https://wa.me/' + ${#strings.replace(client.phone, ' ', '')?.replaceAll('[^0-9]', '')}"
+                                           target="_blank" class="text-decoration-none d-block">
+                                            <i class="bi bi-whatsapp text-success me-1"></i>
+                                            <small th:text="${client.phone}">600123456</small>
+                                        </a>
+                                        <small class="text-muted" th:if="${client.email}" th:text="${client.email}">email</small>
+                                    </td>
+                                    <td>
+                                        <small th:text="${client.lastVisit}">2025-01-15</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark" th:text="${client.totalAppointments}">0</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/admin/client-history(search=${client.phone})}"
+                                           class="btn btn-admin-primary btn-sm" title="Ver historial">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clientes Frecuentes -->
+            <div class="col-lg-5">
+                <div class="admin-card h-100">
+                    <div class="admin-card-header">
+                        <h4 class="mb-0">
+                            <i class="bi bi-star me-2"></i>
+                            Top Clientes
+                        </h4>
+                    </div>
+                    <div class="admin-card-body">
+                        <div th:if="${topClients.isEmpty()}" class="text-center py-4">
+                            <i class="bi bi-trophy display-4" style="color: var(--tf-text-tertiary);"></i>
+                            <p class="mt-2 text-muted">No hay datos suficientes</p>
+                        </div>
+                        <div th:unless="${topClients.isEmpty()}">
+                            <div th:each="client, iter : ${topClients}" class="d-flex align-items-center justify-content-between py-3"
+                                 th:classappend="${!iter.last} ? 'border-bottom'">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                         th:style="'width: 40px; height: 40px; background: ' + (${iter.index == 0} ? 'var(--tf-brand)' : (${iter.index == 1} ? '#C0C0C0' : (${iter.index == 2} ? '#CD7F32' : 'var(--tf-bg-tertiary)'))) + '; color: white; font-weight: bold;'">
+                                        <span th:text="${iter.index + 1}">1</span>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold" th:text="${client.name}">Nombre</div>
+                                        <small class="text-muted">
+                                            <span th:text="${client.completedAppointments}">0</span> completados
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold" style="color: var(--tf-brand);" th:text="${client.totalAppointments}">0</div>
+                                    <small class="text-muted">turnos</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/notifications.js}"></script>
+
+<script th:if="${appointments != null && !appointments.isEmpty()}">
+    // Paginacion client-side
+    let tablePagination = {
+        currentPage: 0,
+        pageSize: 5,
+        allRows: [],
+        filteredRows: []
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const tbody = document.getElementById('appointments-body');
+        if (!tbody) return;
+
+        tablePagination.allRows = Array.from(tbody.querySelectorAll('tr'));
+        tablePagination.filteredRows = [...tablePagination.allRows];
+
+        document.getElementById('pageSize')?.addEventListener('change', function() {
+            tablePagination.pageSize = parseInt(this.value);
+            tablePagination.currentPage = 0;
+            renderTablePage();
+        });
+
+        document.getElementById('tableFilter')?.addEventListener('input', function() {
+            const term = this.value.toLowerCase().trim();
+            if (term === '') {
+                tablePagination.filteredRows = [...tablePagination.allRows];
+            } else {
+                tablePagination.filteredRows = tablePagination.allRows.filter(row =>
+                    row.textContent.toLowerCase().includes(term)
+                );
+            }
+            tablePagination.currentPage = 0;
+            renderTablePage();
+        });
+
+        renderTablePage();
+    });
+
+    function renderTablePage() {
+        const { currentPage, pageSize, filteredRows, allRows } = tablePagination;
+        const totalRows = filteredRows.length;
+        const totalPages = Math.ceil(totalRows / pageSize);
+        const start = currentPage * pageSize;
+        const end = Math.min(start + pageSize, totalRows);
+
+        allRows.forEach(row => row.style.display = 'none');
+        for (let i = start; i < end; i++) {
+            filteredRows[i].style.display = '';
+        }
+
+        document.getElementById('showingFrom').textContent = totalRows > 0 ? start + 1 : 0;
+        document.getElementById('showingTo').textContent = end;
+        document.getElementById('totalRecords').textContent = totalRows;
+
+        renderPaginationButtons(totalPages);
+    }
+
+    function renderPaginationButtons(totalPages) {
+        const nav = document.getElementById('paginationNav');
+        if (!nav) return;
+
+        const { currentPage } = tablePagination;
+        let html = '';
+
+        html += `<li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage - 1}); return false;">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>`;
+
+        for (let i = 0; i < totalPages; i++) {
+            if (i === 0 || i === totalPages - 1 || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${i}); return false;">${i + 1}</a>
+                </li>`;
+            }
+        }
+
+        html += `<li class="page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage + 1}); return false;">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>`;
+
+        nav.innerHTML = html;
+    }
+
+    function goToPage(page) {
+        const totalPages = Math.ceil(tablePagination.filteredRows.length / tablePagination.pageSize);
+        if (page < 0 || page >= totalPages) return;
+        tablePagination.currentPage = page;
+        renderTablePage();
+    }
+</script>
+</body>
+</html>
