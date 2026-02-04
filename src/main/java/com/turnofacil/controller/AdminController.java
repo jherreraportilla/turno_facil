@@ -12,9 +12,11 @@ import com.turnofacil.model.enums.AppointmentStatus;
 import com.turnofacil.model.enums.BlockedSlotType;
 import com.turnofacil.repository.AppointmentRepository;
 import com.turnofacil.repository.UserRepository;
+import com.turnofacil.model.PortfolioImage;
 import com.turnofacil.service.AppointmentService;
 import com.turnofacil.service.BlockedSlotService;
 import com.turnofacil.service.BusinessConfigService;
+import com.turnofacil.service.PortfolioImageService;
 import com.turnofacil.service.ServiceService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -36,11 +38,14 @@ import com.turnofacil.service.RateLimiterService;
 import com.turnofacil.service.UserService;
 import com.turnofacil.exception.RateLimitExceededException;
 
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 @Controller
@@ -57,6 +62,7 @@ public class AdminController {
     private final BlockedSlotService blockedSlotService;
     private final UserService userService;
     private final RateLimiterService rateLimiterService;
+    private final PortfolioImageService portfolioImageService;
 
     public AdminController(AppointmentRepository appointmentRepo,
                            UserRepository userRepo,
@@ -65,7 +71,8 @@ public class AdminController {
                            ServiceService serviceService,
                            BlockedSlotService blockedSlotService,
                            UserService userService,
-                           RateLimiterService rateLimiterService) {
+                           RateLimiterService rateLimiterService,
+                           PortfolioImageService portfolioImageService) {
         this.appointmentRepo = appointmentRepo;
         this.userRepo = userRepo;
         this.appointmentService = appointmentService;
@@ -74,6 +81,7 @@ public class AdminController {
         this.blockedSlotService = blockedSlotService;
         this.userService = userService;
         this.rateLimiterService = rateLimiterService;
+        this.portfolioImageService = portfolioImageService;
     }
 
     // ===================== DASHBOARD =====================
@@ -86,67 +94,40 @@ public class AdminController {
         log.info("Acceso al dashboard - Usuario: {} ({})", business.getName(), business.getEmail());
 
         BusinessConfig config = businessConfigService.getByUserId(business.getId());
+        Long bId = business.getId();
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(java.time.DayOfWeek.MONDAY);
         LocalDate endOfWeek = today.with(java.time.DayOfWeek.SUNDAY);
         LocalDate startOfMonth = today.withDayOfMonth(1);
 
-        // Obtener turnos de hoy
+        // Turnos de hoy
         List<Appointment> todayAppointments = appointmentRepo
-                .findByDateAndBusinessIdOrderByTimeAsc(today, business.getId())
+                .findByDateAndBusinessIdOrderByTimeAsc(today, bId)
                 .stream()
-                .peek(a -> {
-                    if (a.getStatus() == null) {
-                        a.setStatus(AppointmentStatus.PENDING);
-                    }
-                })
+                .peek(a -> { if (a.getStatus() == null) a.setStatus(AppointmentStatus.PENDING); })
                 .collect(Collectors.toList());
 
-        // Obtener TODOS los turnos
-        List<Appointment> allAppointments = appointmentRepo.findByBusinessId(business.getId())
-                .stream()
-                .peek(a -> {
-                    if (a.getStatus() == null) {
-                        a.setStatus(AppointmentStatus.PENDING);
-                    }
-                })
-                .sorted(Comparator.comparing(Appointment::getDate)
-                        .thenComparing(Appointment::getTime)
-                        .reversed())
-                .collect(Collectors.toList());
+        // Todos los turnos ordenados para paginación client-side
+        List<Appointment> allAppointmentsList = appointmentRepo.findByBusinessIdOrderByDateDescTimeDesc(bId);
 
-        // Obtener bloqueos futuros para el calendario
-        List<BlockedSlot> blockedSlots = blockedSlotService.getFutureBlockedSlots(business.getId());
-
-        // CALCULO DE KPIs
+        // KPIs con COUNT queries (no carga todas las entidades)
         long turnosHoy = todayAppointments.size();
-        long turnosSemana = allAppointments.stream()
-                .filter(a -> !a.getDate().isBefore(startOfWeek) && !a.getDate().isAfter(endOfWeek))
-                .count();
-        long turnosMes = allAppointments.stream()
-                .filter(a -> !a.getDate().isBefore(startOfMonth))
-                .count();
-        long turnosCompletados = allAppointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.COMPLETED)
-                .count();
-        long turnosCancelados = allAppointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.CANCELLED)
-                .count();
-        long turnosPendientes = allAppointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.PENDING)
-                .count();
-        long turnosNoShow = allAppointments.stream()
-                .filter(a -> a.getStatus() == AppointmentStatus.NO_SHOW)
-                .count();
+        long turnosSemana = appointmentRepo.countByBusinessIdAndDateBetween(bId, startOfWeek, endOfWeek);
+        long turnosMes = appointmentRepo.countByBusinessIdAndDateFrom(bId, startOfMonth);
+        long turnosCompletados = appointmentRepo.countByBusinessIdAndStatus(bId, AppointmentStatus.COMPLETED);
+        long turnosCancelados = appointmentRepo.countByBusinessIdAndStatus(bId, AppointmentStatus.CANCELLED);
+        long turnosPendientes = appointmentRepo.countByBusinessIdAndStatus(bId, AppointmentStatus.PENDING);
+        long turnosNoShow = appointmentRepo.countByBusinessIdAndStatus(bId, AppointmentStatus.NO_SHOW);
 
-        long turnosPasados = allAppointments.stream()
-                .filter(a -> a.getDate().isBefore(today) ||
-                        (a.getDate().equals(today) && a.getTime().isBefore(LocalTime.now())))
-                .count();
+        long turnosPasados = appointmentRepo.countPastAppointments(bId, today, LocalTime.now());
         double tasaNoShow = turnosPasados > 0 ? (turnosNoShow * 100.0 / turnosPasados) : 0.0;
 
-        // Convertir appointments a formato JSON para calendario
-        List<Map<String, Object>> calendarEvents = allAppointments.stream()
+        // Calendario: carga solo rango visible (mes actual ± 1 mes)
+        LocalDate calStart = today.minusMonths(1).withDayOfMonth(1);
+        LocalDate calEnd = today.plusMonths(2).withDayOfMonth(1);
+        List<Appointment> calendarAppointments = appointmentRepo.findByDateBetweenAndBusinessId(calStart, calEnd, bId);
+
+        List<Map<String, Object>> calendarEvents = calendarAppointments.stream()
                 .map(a -> {
                     Map<String, Object> event = new HashMap<>();
                     event.put("id", a.getId());
@@ -154,6 +135,8 @@ public class AdminController {
                     event.put("clientPhone", a.getClientPhone());
                     event.put("clientEmail", a.getClientEmail() != null ? a.getClientEmail() : "");
                     event.put("notes", a.getNotes() != null ? a.getNotes() : "");
+                    event.put("internalNotes", a.getInternalNotes() != null ? a.getInternalNotes() : "");
+                    event.put("serviceId", a.getService() != null ? a.getService().getId() : "");
                     event.put("date", a.getDate().toString());
                     event.put("time", a.getTime().toString());
                     event.put("duration", a.getDuration());
@@ -174,7 +157,8 @@ public class AdminController {
                 })
                 .collect(Collectors.toList());
 
-        // Convertir bloqueos a formato JSON para calendario
+        // Bloqueos futuros para calendario
+        List<BlockedSlot> blockedSlots = blockedSlotService.getFutureBlockedSlots(bId);
         List<Map<String, Object>> blockedEvents = blockedSlots.stream()
                 .map(b -> {
                     Map<String, Object> event = new HashMap<>();
@@ -194,10 +178,9 @@ public class AdminController {
                 })
                 .collect(Collectors.toList());
 
-        log.info("Dashboard cargado - Total: {} | Hoy: {} | Semana: {} | Bloqueos: {}",
-                allAppointments.size(), turnosHoy, turnosSemana, blockedSlots.size());
+        log.info("Dashboard cargado - Hoy: {} | Semana: {} | Bloqueos: {}", turnosHoy, turnosSemana, blockedSlots.size());
 
-        // Agregar KPIs al modelo
+        // KPIs
         model.addAttribute("kpiTurnosHoy", turnosHoy);
         model.addAttribute("kpiTurnosSemana", turnosSemana);
         model.addAttribute("kpiTurnosMes", turnosMes);
@@ -207,8 +190,14 @@ public class AdminController {
         model.addAttribute("kpiNoShow", turnosNoShow);
         model.addAttribute("kpiTasaNoShow", String.format("%.1f", tasaNoShow));
 
+        // Servicios activos para modal de edición
+        List<Service> services = serviceService.getActiveServicesByBusiness(bId);
+        model.addAttribute("services", services);
+
+        // Paginación client-side
         model.addAttribute("todayAppointments", todayAppointments);
-        model.addAttribute("allAppointments", allAppointments);
+        model.addAttribute("allAppointments", allAppointmentsList);
+
         model.addAttribute("calendarEvents", calendarEvents);
         model.addAttribute("blockedEvents", blockedEvents);
         model.addAttribute("today", today);
@@ -230,6 +219,33 @@ public class AdminController {
     @ResponseBody
     public List<AppointmentDto> getTodayAppointments(Authentication authentication) {
         return appointmentService.getTodayAppointmentsForCurrentUser(authentication);
+    }
+
+    @GetMapping("/api/trends")
+    @ResponseBody
+    public Map<String, Object> getWeeklyTrends(Authentication auth) {
+        User business = userRepo.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+        LocalDate today = LocalDate.now();
+        LocalDate start = today.minusWeeks(4);
+
+        List<Object[]> dailyCounts = appointmentRepo.countByDayBetween(business.getId(), start, today);
+
+        List<String> labels = new ArrayList<>();
+        List<Long> data = new ArrayList<>();
+        Map<LocalDate, Long> countMap = new LinkedHashMap<>();
+        for (Object[] row : dailyCounts) {
+            countMap.put((LocalDate) row[0], (Long) row[1]);
+        }
+
+        // Rellenar días sin citas con 0
+        LocalDate cursor = start;
+        while (!cursor.isAfter(today)) {
+            labels.add(cursor.toString());
+            data.add(countMap.getOrDefault(cursor, 0L));
+            cursor = cursor.plusDays(1);
+        }
+
+        return Map.of("labels", labels, "data", data);
     }
 
     // ===================== CONFIGURACION =====================
@@ -526,7 +542,188 @@ public class AdminController {
         return "redirect:/admin/blocked-slots";
     }
 
+    // ===================== PORTFOLIO / MI PAGINA =====================
+
+    @GetMapping("/portfolio")
+    public String showPortfolio(Model model, Authentication auth, HttpServletRequest request) {
+        User business = userRepo.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+        BusinessConfig config = businessConfigService.getByUserId(business.getId());
+        List<PortfolioImage> images = portfolioImageService.getByBusinessConfig(config.getId());
+
+        model.addAttribute("businessConfig", config);
+        model.addAttribute("portfolioImages", images);
+        model.addAttribute("currentUrl", request.getRequestURI());
+
+        // URL publica de la landing
+        String publicUrl = request.getScheme() + "://" + request.getServerName();
+        if (request.getServerPort() != 80 && request.getServerPort() != 443) {
+            publicUrl += ":" + request.getServerPort();
+        }
+        publicUrl += "/public/" + config.getSlug();
+        model.addAttribute("publicLandingUrl", publicUrl);
+
+        return "admin/portfolio";
+    }
+
+    @PostMapping("/portfolio/images")
+    public String addPortfolioImage(@RequestParam String imageUrl,
+                                     @RequestParam(required = false) String caption,
+                                     RedirectAttributes redirectAttrs,
+                                     Authentication auth) {
+        try {
+            User business = userRepo.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+            BusinessConfig config = businessConfigService.getByUserId(business.getId());
+            portfolioImageService.addImage(config, imageUrl, caption);
+            redirectAttrs.addFlashAttribute("success", "Imagen agregada correctamente");
+        } catch (Exception e) {
+            log.error("Error al agregar imagen: {}", e.getMessage());
+            redirectAttrs.addFlashAttribute("error", "Error al agregar la imagen");
+        }
+        return "redirect:/admin/portfolio";
+    }
+
+    @PostMapping("/portfolio/images/{id}/update")
+    public String updatePortfolioImage(@PathVariable Long id,
+                                        @RequestParam String imageUrl,
+                                        @RequestParam(required = false) String caption,
+                                        @RequestParam(required = false) Integer displayOrder,
+                                        RedirectAttributes redirectAttrs,
+                                        Authentication auth) {
+        try {
+            User business = userRepo.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+            BusinessConfig config = businessConfigService.getByUserId(business.getId());
+            portfolioImageService.updateImage(id, config, imageUrl, caption, displayOrder);
+            redirectAttrs.addFlashAttribute("success", "Imagen actualizada correctamente");
+        } catch (Exception e) {
+            log.error("Error al actualizar imagen: {}", e.getMessage());
+            redirectAttrs.addFlashAttribute("error", "Error al actualizar la imagen");
+        }
+        return "redirect:/admin/portfolio";
+    }
+
+    @PostMapping("/portfolio/images/{id}/delete")
+    public String deletePortfolioImage(@PathVariable Long id,
+                                        RedirectAttributes redirectAttrs,
+                                        Authentication auth) {
+        try {
+            User business = userRepo.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+            BusinessConfig config = businessConfigService.getByUserId(business.getId());
+            portfolioImageService.deleteImage(id, config);
+            redirectAttrs.addFlashAttribute("success", "Imagen eliminada correctamente");
+        } catch (Exception e) {
+            log.error("Error al eliminar imagen: {}", e.getMessage());
+            redirectAttrs.addFlashAttribute("error", "Error al eliminar la imagen");
+        }
+        return "redirect:/admin/portfolio";
+    }
+
     // ===================== TURNOS =====================
+
+    // ===================== HISTORIAL DE CLIENTE =====================
+
+    @GetMapping("/client-history")
+    public String showClientHistory(@RequestParam(required = false) String search,
+                                    Model model, Authentication auth, HttpServletRequest request) {
+        User business = userRepo.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+        BusinessConfig config = businessConfigService.getByUserId(business.getId());
+        Long bId = business.getId();
+
+        List<Appointment> appointments = List.of();
+        if (search != null && !search.isBlank()) {
+            appointments = appointmentService.getClientHistory(business, search.trim());
+        }
+
+        // Conteos para el resumen (SpEL no soporta lambdas)
+        long countCompleted = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.COMPLETED).count();
+        long countCancelled = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CANCELLED).count();
+        long countNoShow = appointments.stream().filter(a -> a.getStatus() == AppointmentStatus.NO_SHOW).count();
+
+        // Clientes recientes (últimos 10)
+        List<Object[]> recentClientsRaw = appointmentRepo.findRecentClients(bId);
+        List<Map<String, Object>> recentClients = recentClientsRaw.stream()
+                .limit(10)
+                .map(row -> {
+                    Map<String, Object> client = new HashMap<>();
+                    client.put("name", row[0]);
+                    client.put("phone", row[1]);
+                    client.put("email", row[2]);
+                    client.put("lastVisit", row[3]);
+                    client.put("totalAppointments", row[4]);
+                    return client;
+                })
+                .collect(Collectors.toList());
+
+        // Clientes frecuentes (top 5)
+        List<Object[]> topClientsRaw = appointmentRepo.findTopClients(bId);
+        List<Map<String, Object>> topClients = topClientsRaw.stream()
+                .limit(5)
+                .map(row -> {
+                    Map<String, Object> client = new HashMap<>();
+                    client.put("name", row[0]);
+                    client.put("phone", row[1]);
+                    client.put("email", row[2]);
+                    client.put("totalAppointments", row[3]);
+                    client.put("completedAppointments", row[4]);
+                    return client;
+                })
+                .collect(Collectors.toList());
+
+        // Estadísticas generales
+        long totalClients = recentClientsRaw.size();
+        long totalAppointments = appointmentRepo.findByBusinessId(bId).size();
+
+        model.addAttribute("appointments", appointments);
+        model.addAttribute("countCompleted", countCompleted);
+        model.addAttribute("countCancelled", countCancelled);
+        model.addAttribute("countNoShow", countNoShow);
+        model.addAttribute("search", search);
+        model.addAttribute("recentClients", recentClients);
+        model.addAttribute("topClients", topClients);
+        model.addAttribute("totalClients", totalClients);
+        model.addAttribute("totalAppointments", totalAppointments);
+        model.addAttribute("businessConfig", config);
+        model.addAttribute("currentUrl", request.getRequestURI());
+        return "admin/client-history";
+    }
+
+    // ===================== EDICION DE TURNOS =====================
+
+    @PutMapping("/appointments/{id}")
+    @ResponseBody
+    public ResponseEntity<?> updateAppointment(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> payload,
+            Authentication auth) {
+
+        try {
+            User business = userRepo.findByEmailIgnoreCase(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            LocalDate date = LocalDate.parse(payload.get("date"));
+            LocalTime time = LocalTime.parse(payload.get("time"));
+            Long serviceId = payload.get("serviceId") != null && !payload.get("serviceId").isBlank()
+                    ? Long.parseLong(payload.get("serviceId")) : null;
+            String notes = payload.get("notes");
+            String internalNotes = payload.get("internalNotes");
+
+            appointmentService.updateAppointment(id, business, date, time, serviceId, notes, internalNotes);
+
+            log.info("Turno actualizado - ID: {}", id);
+
+            return ResponseEntity.ok(Map.of("success", true, "message", "Turno actualizado correctamente"));
+
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", e.getMessage()));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Acceso denegado"));
+        } catch (Exception e) {
+            log.error("Error al actualizar turno: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Error al actualizar el turno"));
+        }
+    }
 
     @PatchMapping("/appointments/{id}/status")
     @ResponseBody
@@ -539,21 +736,12 @@ public class AdminController {
             User business = userRepo.findByEmailIgnoreCase(auth.getName())
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-            Appointment appointment = appointmentRepo.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Turno no encontrado"));
-
-            if (!appointment.getBusiness().getId().equals(business.getId())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("success", false, "message", "Acceso denegado"));
-            }
-
             String statusCode = payload.get("status");
             if (statusCode == null || statusCode.isBlank()) {
                 return ResponseEntity.badRequest()
                         .body(Map.of("success", false, "message", "Estado no proporcionado"));
             }
 
-            // Validar que el status es valido antes de intentar parsear
             AppointmentStatus newStatus;
             try {
                 newStatus = AppointmentStatus.fromCode(statusCode.toLowerCase());
@@ -562,17 +750,20 @@ public class AdminController {
                         .body(Map.of("success", false, "message", "Estado no valido: " + statusCode));
             }
 
-            appointment.setStatus(newStatus);
-            appointmentRepo.save(appointment);
-
-            log.info("Estado actualizado - Turno ID: {} | Nuevo estado: {}",
-                    id, newStatus.getDisplayName("es"));
+            // Delegar al servicio (valida permisos y transiciones)
+            appointmentService.updateStatus(id, business, newStatus);
 
             return ResponseEntity.ok().body(Map.of(
                     "success", true,
                     "message", "Estado actualizado correctamente"
             ));
 
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("success", false, "message", "Acceso denegado"));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", e.getMessage()));
         } catch (Exception e) {
             log.error("Error al actualizar estado: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -664,5 +855,63 @@ public class AdminController {
         workbook.close();
 
         log.info("Excel exportado - Usuario: {} | Total registros: {}", business.getEmail(), appointments.size());
+    }
+
+    @GetMapping("/appointments/export-csv")
+    public void exportToCsv(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false) String status,
+            Authentication auth,
+            HttpServletResponse response) throws IOException {
+
+        User business = userRepo.findByEmailIgnoreCase(auth.getName()).orElseThrow();
+
+        List<Appointment> appointments = appointmentRepo.findByBusinessId(business.getId())
+                .stream()
+                .sorted(Comparator.comparing(Appointment::getDate).thenComparing(Appointment::getTime))
+                .collect(Collectors.toList());
+
+        if (startDate != null && !startDate.isEmpty()) {
+            LocalDate start = LocalDate.parse(startDate);
+            appointments = appointments.stream().filter(a -> !a.getDate().isBefore(start)).collect(Collectors.toList());
+        }
+        if (endDate != null && !endDate.isEmpty()) {
+            LocalDate end = LocalDate.parse(endDate);
+            appointments = appointments.stream().filter(a -> !a.getDate().isAfter(end)).collect(Collectors.toList());
+        }
+        if (status != null && !status.isEmpty() && !status.equals("ALL")) {
+            AppointmentStatus filterStatus = AppointmentStatus.fromCode(status.toLowerCase());
+            appointments = appointments.stream().filter(a -> a.getStatus() == filterStatus).collect(Collectors.toList());
+        }
+
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=turnos_" + LocalDate.now() + ".csv");
+        response.getOutputStream().write(0xEF); // BOM for Excel UTF-8
+        response.getOutputStream().write(0xBB);
+        response.getOutputStream().write(0xBF);
+
+        var writer = new java.io.PrintWriter(response.getOutputStream(), true, java.nio.charset.StandardCharsets.UTF_8);
+        writer.println("Fecha,Hora,Cliente,Telefono,Email,Notas,Estado,Duracion (min)");
+
+        for (Appointment apt : appointments) {
+            writer.printf("%s,%s,\"%s\",\"%s\",\"%s\",\"%s\",%s,%d%n",
+                    apt.getDate(),
+                    apt.getTime(),
+                    escapeCsv(apt.getClientName()),
+                    escapeCsv(apt.getClientPhone()),
+                    escapeCsv(apt.getClientEmail()),
+                    escapeCsv(apt.getNotes()),
+                    apt.getStatus() != null ? apt.getStatus().getDisplayName("es") : "Pendiente",
+                    apt.getDuration() != null ? apt.getDuration() : 0);
+        }
+        writer.flush();
+        log.info("CSV exportado - Usuario: {} | Total registros: {}", business.getEmail(), appointments.size());
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) return "";
+        return value.replace("\"", "\"\"");
     }
 }

@@ -10,8 +10,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- FullCalendar (v6 tiene CSS embebido en JS y locales incluidos) -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <!-- Toast UI Calendar (via jsDelivr) -->
+    <link href="https://cdn.jsdelivr.net/npm/@toast-ui/calendar@2.1.3/dist/toastui-calendar.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/@toast-ui/calendar@2.1.3/dist/toastui-calendar.min.js"></script>
+
+    <!-- Chart.js para gráficos de tendencias -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <!-- CSRF Token para peticiones AJAX -->
     <meta name="_csrf" th:content="${_csrf?.token}">
@@ -105,6 +109,19 @@
                     </div>
                     <div class="kpi-label">Tasa No-Show</div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tendencia de citas (últimas 4 semanas) -->
+    <div class="admin-card mb-5">
+        <div class="card-body p-4">
+            <h5 class="fw-bold mb-3" style="color: var(--tf-text-primary);">
+                <i class="bi bi-graph-up-arrow me-2" style="color: var(--tf-brand);"></i>
+                Citas - Últimas 4 semanas
+            </h5>
+            <div style="height: 220px;">
+                <canvas id="trendsChart"></canvas>
             </div>
         </div>
     </div>
@@ -204,6 +221,7 @@
                         <th>Cliente</th>
                         <th>Teléfono</th>
                         <th>Notas</th>
+                        <th>Reservado el</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -217,6 +235,8 @@
                                  data-phone=${a.clientPhone},
                                  data-email=${a.clientEmail ?: ''},
                                  data-notes=${a.notes ?: ''},
+                                 data-internal-notes=${a.internalNotes ?: ''},
+                                 data-service-id=${a.service?.id ?: ''},
                                  data-status=${a.status != null ? a.status.name() : 'PENDING'}">
                         <td><strong th:text="${a.time}">10:00</strong></td>
                         <td th:text="${a.clientName}">Juan Pérez</td>
@@ -233,6 +253,9 @@
                                   style="display: inline-block; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 -
                             </span>
+                        </td>
+                        <td>
+                            <small class="text-muted" th:text="${a.createdAt != null ? #temporals.format(a.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">30/01/2026 14:23</small>
                         </td>
                         <td>
                             <span class="status-badge"
@@ -269,7 +292,7 @@
     </div>
 
     <!-- TODOS LOS TURNOS -->
-    <div class="admin-card mb-5">
+    <div class="admin-card mb-5" id="todos-turnos">
         <div class="admin-card-header d-flex justify-content-between align-items-center">
             <h4 class="mb-0">
                 <i class="bi bi-calendar3 me-2"></i>
@@ -331,7 +354,11 @@
                         </button>
                         <button class="btn btn-admin-success btn-sm" onclick="exportToExcel()">
                             <i class="bi bi-file-earmark-excel me-1"></i>
-                            Exportar a Excel
+                            Excel
+                        </button>
+                        <button class="btn btn-admin-secondary btn-sm" onclick="exportToCsv()">
+                            <i class="bi bi-filetype-csv me-1"></i>
+                            CSV
                         </button>
                     </div>
                 </div>
@@ -342,10 +369,11 @@
                 <div class="d-flex align-items-center gap-2">
                     <label class="mb-0 text-muted small">Mostrar</label>
                     <select class="form-select form-select-sm" id="pageSize" style="width: auto;">
-                        <option value="5">5</option>
-                        <option value="10" selected>10</option>
-                        <option value="25">25</option>
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
                         <option value="50">50</option>
+                        <option value="100">100</option>
                     </select>
                     <label class="mb-0 text-muted small">registros</label>
                 </div>
@@ -381,6 +409,9 @@
                         </th>
                         <th>Teléfono</th>
                         <th>Notas</th>
+                        <th data-sortable="createdAt">
+                            Reservado el <i class="bi bi-arrow-down-up sort-icon"></i>
+                        </th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -394,7 +425,10 @@
                                  data-phone=${a.clientPhone},
                                  data-email=${a.clientEmail ?: ''},
                                  data-notes=${a.notes ?: ''},
-                                 data-status=${a.status != null ? a.status.name() : 'PENDING'}">
+                                 data-internal-notes=${a.internalNotes ?: ''},
+                                 data-service-id=${a.service?.id ?: ''},
+                                 data-status=${a.status != null ? a.status.name() : 'PENDING'},
+                                 data-created-at=${a.createdAt != null ? #temporals.format(a.createdAt, 'yyyy-MM-dd HH:mm:ss') : ''}">
                         <td><strong th:text="${a.date}">2025-12-12</strong></td>
                         <td><strong th:text="${a.time}">10:00</strong></td>
                         <td th:text="${a.clientName}">Juan Pérez</td>
@@ -405,6 +439,9 @@
                                   style="display: inline-block; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 -
                             </span>
+                        </td>
+                        <td>
+                            <small class="text-muted" th:text="${a.createdAt != null ? #temporals.format(a.createdAt, 'dd/MM/yyyy HH:mm') : '-'}">30/01/2026 14:23</small>
                         </td>
                         <td>
                             <span class="status-badge"
@@ -423,17 +460,18 @@
                 </table>
             </div>
 
-            <!-- Paginación -->
-            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3" id="paginationContainer">
-                <div class="text-muted small">
-                    Mostrando <strong><span id="showingFrom">1</span></strong> a <strong><span id="showingTo">10</span></strong>
-                    de <strong><span id="totalRecords">0</span></strong> registros
-                    <span id="filteredInfo" style="display: none;">
-                        (filtrados de <span id="totalOriginal">0</span> totales)
-                    </span>
+            <!-- Paginación client-side -->
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-3" id="paginationContainer"
+                 th:if="${!allAppointments.isEmpty()}">
+                <div class="text-muted small" id="paginationInfo">
+                    Mostrando <strong id="showingFrom">1</strong>
+                    a <strong id="showingTo">5</strong>
+                    de <strong id="totalRecords" th:text="${allAppointments.size()}">0</strong> registros
                 </div>
                 <nav>
-                    <ul class="pagination admin-pagination mb-0" id="pagination"></ul>
+                    <ul class="pagination admin-pagination mb-0" id="paginationNav">
+                        <!-- Se genera dinámicamente con JavaScript -->
+                    </ul>
                 </nav>
             </div>
         </div>
@@ -507,17 +545,34 @@
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Fecha</label>
-                            <input type="text" class="form-control" id="appointmentDate" readonly>
+                            <input type="date" class="form-control" id="appointmentDate">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Hora</label>
-                            <input type="text" class="form-control" id="appointmentTime" readonly>
+                            <input type="time" class="form-control" id="appointmentTime">
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-bold">Notas</label>
-                            <textarea class="form-control" id="appointmentNotes" rows="3" readonly></textarea>
+                            <label class="form-label fw-bold">Servicio</label>
+                            <select class="form-select" id="appointmentService">
+                                <option value="">Sin servicio</option>
+                                <option th:each="s : ${services}" th:value="${s.id}" th:text="${s.name}">Servicio</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Notas del cliente</label>
+                            <textarea class="form-control" id="appointmentNotes" rows="2"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="bi bi-lock me-1"></i>Notas internas
+                                <small class="text-muted fw-normal">(solo visibles para ti)</small>
+                            </label>
+                            <textarea class="form-control" id="appointmentInternalNotes" rows="2"
+                                      placeholder="Ej: Cliente habitual, prefiere turno temprano..."></textarea>
                         </div>
 
                         <div class="col-12 mt-4">
@@ -578,106 +633,200 @@
 </div>
 
 <script th:inline="javascript">
-    let allRows = [];
-    let filteredRows = [];
-    let currentPage = 1;
-    let pageSize = 10;
-    let sortColumn = 'date';
-    let sortDirection = 'desc';
-
     document.addEventListener('DOMContentLoaded', function () {
-        initTable();
+        initTablePagination();
         initCalendar();
+        initTrendsChart();
     });
 
-    function initTable() {
+    function initTrendsChart() {
+        const canvas = document.getElementById('trendsChart');
+        if (!canvas) return;
+
+        fetch('/admin/api/trends', {
+            headers: {
+                'Accept': 'application/json',
+                'X-XSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.content || ''
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            // Agrupar por semana para mejor legibilidad
+            const weekLabels = [];
+            const weekData = [];
+            let weekSum = 0;
+            let weekStart = null;
+
+            data.labels.forEach((label, i) => {
+                const d = new Date(label);
+                if (d.getDay() === 1 || i === 0) {
+                    if (weekStart !== null) {
+                        weekLabels.push(weekStart);
+                        weekData.push(weekSum);
+                    }
+                    weekStart = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+                    weekSum = 0;
+                }
+                weekSum += data.data[i];
+            });
+            if (weekStart) {
+                weekLabels.push(weekStart);
+                weekData.push(weekSum);
+            }
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: weekLabels,
+                    datasets: [{
+                        label: 'Citas por semana',
+                        data: weekData,
+                        backgroundColor: 'rgba(201, 162, 39, 0.6)',
+                        borderColor: '#c9a227',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, color: '#999' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        x: {
+                            ticks: { color: '#999' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => console.warn('Error cargando tendencias:', err));
+    }
+
+    // Paginación client-side
+    let tablePagination = {
+        currentPage: 0,
+        pageSize: 5,
+        allRows: [],
+        filteredRows: []
+    };
+
+    function initTablePagination() {
         const tbody = document.getElementById('appointments-body');
         if (!tbody) return;
 
-        allRows = Array.from(tbody.querySelectorAll('tr'));
-        filteredRows = [...allRows];
+        // Guardar todas las filas
+        tablePagination.allRows = Array.from(tbody.querySelectorAll('tr'));
+        tablePagination.filteredRows = [...tablePagination.allRows];
 
-        document.getElementById('pageSize').addEventListener('change', function() {
-            pageSize = parseInt(this.value);
-            currentPage = 1;
-            updateTable();
-        });
-
-        document.getElementById('searchInput').addEventListener('input', function() {
-            applyAllFilters();
-        });
-
-        document.querySelectorAll('th[data-sortable]').forEach(th => {
-            th.addEventListener('click', function() {
-                const column = this.getAttribute('data-sortable');
-
-                if (sortColumn === column) {
-                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortColumn = column;
-                    sortDirection = 'asc';
-                }
-
-                document.querySelectorAll('th[data-sortable]').forEach(h => {
-                    h.classList.remove('sorted');
-                    const icon = h.querySelector('.sort-icon');
-                    icon.className = 'bi bi-arrow-down-up sort-icon';
-                });
-
-                this.classList.add('sorted');
-                const icon = this.querySelector('.sort-icon');
-                icon.className = sortDirection === 'asc' ? 'bi bi-arrow-up sort-icon' : 'bi bi-arrow-down sort-icon';
-
-                sortData(column, sortDirection);
-                updateTable();
+        // Evento para cambiar tamaño de página
+        const pageSizeSelect = document.getElementById('pageSize');
+        if (pageSizeSelect) {
+            pageSizeSelect.addEventListener('change', function() {
+                tablePagination.pageSize = parseInt(this.value);
+                tablePagination.currentPage = 0;
+                renderTablePage();
             });
-        });
-
-        sortData('date', 'desc');
-        updateTable();
-    }
-
-    function applyAllFilters() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-        const startDate = document.getElementById('filterStartDate').value;
-        const endDate = document.getElementById('filterEndDate').value;
-        const status = document.getElementById('filterStatus').value;
-
-        filteredRows = allRows.filter(row => {
-            const client = (row.dataset.client || '').toLowerCase();
-            const phone = (row.dataset.phone || '').toLowerCase();
-            const date = (row.dataset.date || '').toLowerCase();
-            const time = (row.dataset.time || '').toLowerCase();
-
-            const matchesSearch = searchTerm === '' ||
-                client.includes(searchTerm) ||
-                phone.includes(searchTerm) ||
-                date.includes(searchTerm) ||
-                time.includes(searchTerm);
-
-            const matchesStartDate = !startDate || row.dataset.date >= startDate;
-            const matchesEndDate = !endDate || row.dataset.date <= endDate;
-            const matchesStatus = status === 'ALL' || row.dataset.status === status;
-
-            return matchesSearch && matchesStartDate && matchesEndDate && matchesStatus;
-        });
-
-        document.getElementById('totalBadge').textContent = filteredRows.length;
-
-        if (searchTerm || startDate || endDate || status !== 'ALL') {
-            document.getElementById('filteredInfo').style.display = 'inline';
-            document.getElementById('totalOriginal').textContent = allRows.length;
-        } else {
-            document.getElementById('filteredInfo').style.display = 'none';
         }
 
-        currentPage = 1;
-        sortData(sortColumn, sortDirection);
-        updateTable();
+        // Evento para buscar
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const term = this.value.toLowerCase().trim();
+                if (term === '') {
+                    tablePagination.filteredRows = [...tablePagination.allRows];
+                } else {
+                    tablePagination.filteredRows = tablePagination.allRows.filter(row =>
+                        row.textContent.toLowerCase().includes(term)
+                    );
+                }
+                tablePagination.currentPage = 0;
+                renderTablePage();
+            });
+        }
+
+        // Render inicial
+        renderTablePage();
+    }
+
+    function renderTablePage() {
+        const tbody = document.getElementById('appointments-body');
+        if (!tbody) return;
+
+        const { currentPage, pageSize, filteredRows } = tablePagination;
+        const totalRows = filteredRows.length;
+        const totalPages = Math.ceil(totalRows / pageSize);
+        const start = currentPage * pageSize;
+        const end = Math.min(start + pageSize, totalRows);
+
+        // Ocultar todas las filas primero
+        tablePagination.allRows.forEach(row => row.style.display = 'none');
+
+        // Mostrar solo las filas de la página actual
+        for (let i = start; i < end; i++) {
+            filteredRows[i].style.display = '';
+        }
+
+        // Actualizar info de paginación
+        document.getElementById('showingFrom').textContent = totalRows > 0 ? start + 1 : 0;
+        document.getElementById('showingTo').textContent = end;
+        document.getElementById('totalRecords').textContent = totalRows;
+
+        // Generar botones de paginación
+        renderPaginationButtons(totalPages);
+    }
+
+    function renderPaginationButtons(totalPages) {
+        const nav = document.getElementById('paginationNav');
+        if (!nav) return;
+
+        const { currentPage } = tablePagination;
+        let html = '';
+
+        // Botón anterior
+        html += `<li class="page-item ${currentPage === 0 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage - 1}); return false;">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>`;
+
+        // Números de página
+        for (let i = 0; i < totalPages; i++) {
+            if (i === 0 || i === totalPages - 1 || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${i}); return false;">${i + 1}</a>
+                </li>`;
+            }
+        }
+
+        // Botón siguiente
+        html += `<li class="page-item ${currentPage >= totalPages - 1 ? 'disabled' : ''}">
+            <a class="page-link" href="#" onclick="goToPage(${currentPage + 1}); return false;">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>`;
+
+        nav.innerHTML = html;
+    }
+
+    function goToPage(page) {
+        const totalPages = Math.ceil(tablePagination.filteredRows.length / tablePagination.pageSize);
+        if (page < 0 || page >= totalPages) return;
+        tablePagination.currentPage = page;
+        renderTablePage();
     }
 
     function applyFilters() {
-        applyAllFilters();
+        // Los filtros de fecha/estado redirigen al server
+        const startDate = document.getElementById('filterStartDate').value;
+        const endDate = document.getElementById('filterEndDate').value;
+        const status = document.getElementById('filterStatus').value;
         showToast('Filtros aplicados', 'success');
     }
 
@@ -686,107 +835,32 @@
         document.getElementById('filterEndDate').value = '';
         document.getElementById('filterStatus').value = 'ALL';
         document.getElementById('searchInput').value = '';
-
-        filteredRows = [...allRows];
-        document.getElementById('totalBadge').textContent = allRows.length;
-        document.getElementById('filteredInfo').style.display = 'none';
-
-        currentPage = 1;
-        sortData(sortColumn, sortDirection);
-        updateTable();
+        // Resetear paginación
+        tablePagination.filteredRows = [...tablePagination.allRows];
+        tablePagination.currentPage = 0;
+        renderTablePage();
         showToast('Filtros limpiados', 'success');
     }
 
-    function exportToExcel() {
+    function getExportParams() {
         const startDate = document.getElementById('filterStartDate').value;
         const endDate = document.getElementById('filterEndDate').value;
         const status = document.getElementById('filterStatus').value;
-
-        let url = '/admin/appointments/export?';
         const params = [];
         if (startDate) params.push(`startDate=${startDate}`);
         if (endDate) params.push(`endDate=${endDate}`);
         if (status && status !== 'ALL') params.push(`status=${status}`);
-        url += params.join('&');
+        return params.join('&');
+    }
 
+    function exportToExcel() {
         showToast('Descargando Excel...', 'success');
-        window.location.href = url;
+        window.location.href = '/admin/appointments/export?' + getExportParams();
     }
 
-    function sortData(column, direction) {
-        filteredRows.sort((a, b) => {
-            let valA = a.dataset[column] || '';
-            let valB = b.dataset[column] || '';
-            if (typeof valA === 'string') valA = valA.toLowerCase();
-            if (typeof valB === 'string') valB = valB.toLowerCase();
-            if (direction === 'asc') {
-                return valA > valB ? 1 : valA < valB ? -1 : 0;
-            } else {
-                return valA < valB ? 1 : valA > valB ? -1 : 0;
-            }
-        });
-    }
-
-    function updateTable() {
-        const tbody = document.getElementById('appointments-body');
-        const totalRecords = filteredRows.length;
-        const totalPages = Math.ceil(totalRecords / pageSize);
-
-        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
-        if (currentPage < 1) currentPage = 1;
-
-        const start = (currentPage - 1) * pageSize;
-        const end = start + pageSize;
-
-        tbody.innerHTML = '';
-        const pageRows = filteredRows.slice(start, end);
-
-        if (pageRows.length === 0 && totalRecords === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No se encontraron resultados</td></tr>';
-        } else {
-            pageRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
-        }
-
-        document.getElementById('showingFrom').textContent = totalRecords > 0 ? start + 1 : 0;
-        document.getElementById('showingTo').textContent = Math.min(end, totalRecords);
-        document.getElementById('totalRecords').textContent = totalRecords;
-
-        generatePagination(totalPages);
-    }
-
-    function generatePagination(totalPages) {
-        const pagination = document.getElementById('pagination');
-        pagination.innerHTML = '';
-        if (totalPages <= 1) return;
-
-        const prevLi = document.createElement('li');
-        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
-        prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;"><i class="bi bi-chevron-left"></i></a>`;
-        pagination.appendChild(prevLi);
-
-        const maxButtons = 5;
-        let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-        if (endPage - startPage < maxButtons - 1) startPage = Math.max(1, endPage - maxButtons + 1);
-
-        for (let i = startPage; i <= endPage; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-            li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
-            pagination.appendChild(li);
-        }
-
-        const nextLi = document.createElement('li');
-        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
-        nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;"><i class="bi bi-chevron-right"></i></a>`;
-        pagination.appendChild(nextLi);
-    }
-
-    function changePage(page) {
-        const totalPages = Math.ceil(filteredRows.length / pageSize);
-        if (page < 1 || page > totalPages) return;
-        currentPage = page;
-        updateTable();
+    function exportToCsv() {
+        showToast('Descargando CSV...', 'success');
+        window.location.href = '/admin/appointments/export-csv?' + getExportParams();
     }
 
     function initCalendar() {
@@ -796,34 +870,50 @@
         var rawAppointments = /*[[${calendarEvents}]]*/ [];
         var rawBlockedEvents = /*[[${blockedEvents}]]*/ [];
 
-        // Convertir turnos a eventos
-        var appointmentEvents = rawAppointments.map(a => {
+        // Convertir turnos a eventos de Toast UI Calendar
+        var appointmentEvents = rawAppointments.map((a, idx) => {
             const status = a.status;
-            let color = '#A0A9B0';
+            let color = '#C9A227'; // Dorado por defecto
             if (status) {
                 switch (status.badgeClass) {
                     case 'bg-success': color = '#5A9367'; break;
                     case 'bg-warning': color = '#C9A227'; break;
                     case 'bg-danger': color = '#C45C4A'; break;
                     case 'bg-dark': color = '#4A3F35'; break;
-                    default: color = '#A0A9B0';
+                    case 'bg-secondary': color = '#6B7280'; break;
+                    default: color = '#C9A227';
                 }
             }
+
+            // Calcular hora de fin basada en la duración
+            const duration = a.duration || 30; // 30 minutos por defecto
+            // Asegurar formato correcto de hora (HH:mm:ss)
+            const timeStr = a.time.length === 5 ? a.time + ':00' : a.time;
+            const startDateTime = a.date + 'T' + timeStr;
+            const startDate = new Date(startDateTime);
+            const endDate = new Date(startDate.getTime() + duration * 60000);
+            const endTime = endDate.toTimeString().substring(0, 8);
+
             return {
+                id: 'appt-' + a.id,
+                calendarId: 'appointments',
                 title: a.clientName,
-                start: a.date + 'T' + a.time,
-                allDay: false,
+                start: startDateTime,
+                end: a.date + 'T' + endTime,
+                isReadOnly: true,
+                category: 'time',
                 backgroundColor: color,
                 borderColor: color,
-                textColor: '#fff',
-                display: 'block',
-                extendedProps: {
+                color: '#fff',
+                raw: {
                     id: a.id,
                     phone: a.clientPhone,
                     email: a.clientEmail || '',
                     status: status?.es || 'Sin estado',
                     statusCode: a.statusCode || 'PENDING',
                     notes: a.notes || '',
+                    internalNotes: a.internalNotes || '',
+                    serviceId: a.serviceId || '',
                     date: a.date,
                     time: a.time,
                     isBlocked: false
@@ -832,36 +922,44 @@
         });
 
         // Convertir bloqueos a eventos
-        var blockedEvents = rawBlockedEvents.flatMap(b => {
+        var blockedEvents = rawBlockedEvents.flatMap((b, idx) => {
             const events = [];
             const startDate = new Date(b.startDate);
             const endDate = new Date(b.endDate);
 
             for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                 const dateStr = d.toISOString().split('T')[0];
+                const bgColor = b.color || '#6B7280';
 
                 if (b.allDay) {
+                    // Para bloqueos de día completo
                     events.push({
+                        id: 'blocked-' + idx + '-' + dateStr,
+                        calendarId: 'blocked',
                         title: b.title,
-                        start: dateStr,
-                        allDay: true,
-                        backgroundColor: b.color || '#6B7280',
-                        borderColor: b.color || '#6B7280',
-                        textColor: '#ffffff',
-                        display: 'background',
-                        extendedProps: { isBlocked: true, type: b.typeDisplay }
+                        start: dateStr + 'T08:00:00',
+                        end: dateStr + 'T21:00:00',
+                        isAllDay: false,
+                        isReadOnly: true,
+                        category: 'time',
+                        backgroundColor: bgColor,
+                        borderColor: bgColor,
+                        color: '#ffffff',
+                        raw: { isBlocked: true, type: b.typeDisplay }
                     });
                 } else if (b.startTime && b.endTime) {
                     events.push({
+                        id: 'blocked-' + idx + '-' + dateStr,
+                        calendarId: 'blocked',
                         title: b.title,
-                        start: dateStr + 'T' + b.startTime,
-                        end: dateStr + 'T' + b.endTime,
-                        allDay: false,
-                        backgroundColor: b.color || '#6B7280',
-                        borderColor: b.color || '#6B7280',
-                        textColor: '#ffffff',
-                        display: 'block',
-                        extendedProps: { isBlocked: true, type: b.typeDisplay }
+                        start: dateStr + 'T' + b.startTime + ':00',
+                        end: dateStr + 'T' + b.endTime + ':00',
+                        isReadOnly: true,
+                        category: 'time',
+                        backgroundColor: bgColor,
+                        borderColor: bgColor,
+                        color: '#ffffff',
+                        raw: { isBlocked: true, type: b.typeDisplay }
                     });
                 }
             }
@@ -871,30 +969,211 @@
         // Combinar todos los eventos
         var allEvents = [...appointmentEvents, ...blockedEvents];
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        // Crear controles de navegacion
+        const controlsHtml = `
+            <div class="tui-calendar-controls admin-cal-controls">
+                <div class="tui-nav-buttons">
+                    <button type="button" class="btn-cal-nav" id="adminCalPrev">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn-cal-today" id="adminCalToday">Hoy</button>
+                    <button type="button" class="btn-cal-nav" id="adminCalNext">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <h3 class="tui-calendar-title" id="adminCalTitle"></h3>
+                <div class="tui-view-buttons">
+                    <button type="button" class="btn-cal-view active" data-view="month">Mes</button>
+                    <button type="button" class="btn-cal-view" data-view="week">Semana</button>
+                    <button type="button" class="btn-cal-view" data-view="day">Dia</button>
+                </div>
+            </div>
+        `;
+        calendarEl.insertAdjacentHTML('beforebegin', controlsHtml);
+
+        // Crear calendario Toast UI
+        const Calendar = tui.Calendar;
+        const calendar = new Calendar(calendarEl, {
+            defaultView: 'month',
+            usageStatistics: false,
+            isReadOnly: true,
+            useDetailPopup: false,
+            useFormPopup: false,
+            week: {
+                startDayOfWeek: 1,
+                dayNames: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+                hourStart: 8,
+                hourEnd: 21,
+                taskView: false,
+                eventView: ['allday', 'time'],
+                showNowIndicator: true
             },
-            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dia' },
-            locale: 'es',
-            events: allEvents,
-            height: 'auto',
-            eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
-            dayMaxEvents: 3,
-            moreLinkText: 'mas',
-            eventClick: function(info) {
-                const props = info.event.extendedProps;
-                if (props.isBlocked) {
-                    alert('Bloqueo: ' + info.event.title + ' (' + props.type + ')');
-                    return;
+            month: {
+                startDayOfWeek: 1,
+                dayNames: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+                narrowWeekend: false,
+                visibleWeeksCount: 0,
+                visibleEventCount: 4
+            },
+            calendars: [
+                {
+                    id: 'appointments',
+                    name: 'Turnos',
+                    backgroundColor: '#C9A227',
+                    borderColor: '#C9A227',
+                    color: '#ffffff'
+                },
+                {
+                    id: 'blocked',
+                    name: 'Bloqueados',
+                    backgroundColor: '#6B7280',
+                    borderColor: '#6B7280',
+                    color: '#ffffff'
                 }
-                openCalendarModal(info.event.title, props);
+            ],
+            theme: {
+                common: {
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    dayName: { color: '#374151' },
+                    holiday: { color: '#C45C4A' },
+                    saturday: { color: '#6366f1' },
+                    today: { color: '#D4AF74' },
+                    gridSelection: {
+                        backgroundColor: 'rgba(212, 175, 116, 0.3)',
+                        border: '2px solid #D4AF74'
+                    }
+                },
+                week: {
+                    dayName: {
+                        borderLeft: '1px solid #e5e7eb',
+                        borderTop: '1px solid #e5e7eb',
+                        borderBottom: '2px solid #D4AF74',
+                        backgroundColor: '#f9fafb'
+                    },
+                    dayGrid: { borderRight: '1px solid #e5e7eb' },
+                    dayGridLeft: {
+                        borderRight: '1px solid #e5e7eb',
+                        backgroundColor: '#f9fafb',
+                        width: '60px'
+                    },
+                    timeGrid: { borderRight: '1px solid #e5e7eb' },
+                    timeGridLeft: {
+                        borderRight: '1px solid #e5e7eb',
+                        backgroundColor: '#f9fafb',
+                        width: '60px'
+                    },
+                    timeGridHalfHourLine: { borderBottom: '1px dotted #e5e7eb' },
+                    timeGridHourLine: { borderBottom: '1px solid #d1d5db' },
+                    nowIndicatorLabel: { color: '#D4AF74' },
+                    nowIndicatorBullet: { backgroundColor: '#D4AF74' },
+                    nowIndicatorToday: { border: '2px solid #D4AF74' },
+                    pastTime: { color: '#9ca3af' },
+                    futureTime: { color: '#374151' }
+                },
+                month: {
+                    dayName: {
+                        borderLeft: '1px solid #e5e7eb',
+                        backgroundColor: '#f9fafb'
+                    },
+                    holidayExceptThisMonth: { color: 'rgba(196, 92, 74, 0.4)' },
+                    dayExceptThisMonth: { color: '#d1d5db' },
+                    moreView: {
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e7eb'
+                    },
+                    moreViewTitle: { backgroundColor: '#f9fafb' }
+                }
+            },
+            template: {
+                time: function(event) {
+                    const time = new Date(event.start).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit', hour12: false});
+                    return '<span style="color: ' + (event.color || '#fff') + '; font-weight: 500;">' + time + ' ' + event.title + '</span>';
+                },
+                allday: function(event) {
+                    return '<span style="color: ' + (event.color || '#fff') + '; font-weight: 500;">' + event.title + '</span>';
+                },
+                monthGridHeader: function(model) {
+                    const date = parseInt(model.date.split('-')[2], 10);
+                    const isToday = model.isToday;
+                    const style = isToday ? 'background: #D4AF74; color: #fff; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-weight: 600;' : 'color: #374151;';
+                    return '<span style="' + style + '">' + date + '</span>';
+                },
+                timegridDisplayPrimaryTime: function(props) {
+                    const hour = props.time.getHours();
+                    const minutes = props.time.getMinutes();
+                    return (hour < 10 ? '0' : '') + hour + ':' + (minutes < 10 ? '0' : '') + minutes;
+                },
+                timegridNowIndicatorLabel: function(props) {
+                    const hour = props.time.getHours();
+                    const minutes = props.time.getMinutes();
+                    return (hour < 10 ? '0' : '') + hour + ':' + (minutes < 10 ? '0' : '') + minutes;
+                },
+                monthMoreTitleDate: function(moreTitle) {
+                    const date = new Date(moreTitle.ymd);
+                    const day = date.getDate();
+                    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                    return '<span style="font-weight: 600; color: #374151;">' + day + ' ' + months[date.getMonth()] + '</span>';
+                },
+                monthMoreClose: function() {
+                    return '<i class="bi bi-x-lg"></i>';
+                }
             }
         });
-        calendar.render();
+
+        // Cargar eventos
+        console.log('Cargando eventos en calendario:', allEvents.length, 'eventos');
+        console.log('Turnos:', appointmentEvents.length);
+        console.log('Bloqueos:', blockedEvents.length);
+        if (allEvents.length > 0) {
+            console.log('Ejemplo de evento:', allEvents[0]);
+        }
+        calendar.createEvents(allEvents);
+
+        // Actualizar titulo inicial
+        updateAdminCalendarTitle(calendar);
+
+        // Event listeners para navegacion
+        document.getElementById('adminCalPrev').addEventListener('click', () => {
+            calendar.prev();
+            updateAdminCalendarTitle(calendar);
+        });
+        document.getElementById('adminCalNext').addEventListener('click', () => {
+            calendar.next();
+            updateAdminCalendarTitle(calendar);
+        });
+        document.getElementById('adminCalToday').addEventListener('click', () => {
+            calendar.today();
+            updateAdminCalendarTitle(calendar);
+        });
+
+        document.querySelectorAll('.admin-cal-controls .btn-cal-view').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.admin-cal-controls .btn-cal-view').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                calendar.changeView(this.dataset.view);
+                updateAdminCalendarTitle(calendar);
+            });
+        });
+
+        // Click en evento
+        calendar.on('clickEvent', function(info) {
+            const event = info.event;
+            const raw = event.raw || {};
+
+            if (raw.isBlocked) {
+                alert('Bloqueo: ' + event.title + ' (' + raw.type + ')');
+                return;
+            }
+            openCalendarModal(event.title, raw);
+        });
+
+        function updateAdminCalendarTitle(cal) {
+            const date = cal.getDate().toDate();
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('adminCalTitle').textContent = months[date.getMonth()] + ' ' + date.getFullYear();
+        }
     }
 
     function openCalendarModal(clientName, props) {
@@ -902,10 +1181,14 @@
         document.getElementById('clientName').value = clientName;
         document.getElementById('clientPhone').value = props.phone;
         document.getElementById('clientEmail').value = props.email || '';
-        document.getElementById('appointmentDate').value = formatDateSpanish(props.date);
+        document.getElementById('appointmentDate').value = props.date;
         document.getElementById('appointmentTime').value = props.time;
-        document.getElementById('appointmentNotes').value = props.notes || 'Sin notas';
+        document.getElementById('appointmentNotes').value = props.notes || '';
+        document.getElementById('appointmentInternalNotes').value = props.internalNotes || '';
         document.getElementById('appointmentStatus').value = props.statusCode || 'PENDING';
+        if (document.getElementById('appointmentService')) {
+            document.getElementById('appointmentService').value = props.serviceId || '';
+        }
 
         const cleanPhone = props.phone.replace(/\D/g, '');
         document.getElementById('whatsappLink').href = 'https://wa.me/' + cleanPhone;
@@ -939,8 +1222,12 @@
         document.getElementById('clientEmail').value = row.dataset.email || '';
         document.getElementById('appointmentDate').value = row.dataset.date;
         document.getElementById('appointmentTime').value = row.dataset.time;
-        document.getElementById('appointmentNotes').value = row.dataset.notes || 'Sin notas';
+        document.getElementById('appointmentNotes').value = row.dataset.notes || '';
+        document.getElementById('appointmentInternalNotes').value = row.dataset.internalNotes || '';
         document.getElementById('appointmentStatus').value = row.dataset.status || 'PENDING';
+        if (document.getElementById('appointmentService')) {
+            document.getElementById('appointmentService').value = row.dataset.serviceId || '';
+        }
 
         const cleanPhone = row.dataset.phone.replace(/\D/g, '');
         document.getElementById('whatsappLink').href = `https://wa.me/${cleanPhone}`;
@@ -1007,18 +1294,40 @@
         }
 
         try {
-            const response = await fetch('/admin/appointments/' + id + '/status', {
+            // Guardar edición del turno (fecha, hora, notas, etc.)
+            const editPayload = {
+                date: document.getElementById('appointmentDate').value,
+                time: document.getElementById('appointmentTime').value,
+                serviceId: document.getElementById('appointmentService')?.value || '',
+                notes: document.getElementById('appointmentNotes').value,
+                internalNotes: document.getElementById('appointmentInternalNotes').value
+            };
+
+            const editResponse = await fetch('/admin/appointments/' + id, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(editPayload)
+            });
+
+            if (!editResponse.ok) {
+                const data = await editResponse.json();
+                showToast(data.message || 'Error al guardar cambios', 'error');
+                return;
+            }
+
+            // Guardar estado
+            const statusResponse = await fetch('/admin/appointments/' + id + '/status', {
                 method: 'PATCH',
                 headers: getHeaders(),
                 body: JSON.stringify({ status: newStatus })
             });
 
-            if (response.ok) {
+            if (statusResponse.ok) {
                 bootstrap.Modal.getInstance(document.getElementById('appointmentModal')).hide();
-                showToast('Estado actualizado', 'success');
+                showToast('Turno actualizado', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                showToast('Error al actualizar', 'error');
+                showToast('Error al actualizar estado', 'error');
             }
         } catch (error) {
             showToast('Error al actualizar', 'error');

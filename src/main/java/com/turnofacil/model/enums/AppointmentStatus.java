@@ -46,6 +46,28 @@ public enum AppointmentStatus {
     private final String textClass;
 
     /**
+     * Regla de dominio: Transiciones de estado válidas.
+     * Estados finales (CANCELLED, COMPLETED, NO_SHOW) no permiten transiciones.
+     */
+    public boolean canTransitionTo(AppointmentStatus target) {
+        if (target == null || target == this) {
+            return false;
+        }
+        return switch (this) {
+            case PENDING -> true; // Puede ir a cualquier estado
+            case CONFIRMED -> target != PENDING; // No puede volver a PENDING
+            case CANCELLED, COMPLETED, NO_SHOW -> false; // Estados finales
+        };
+    }
+
+    /**
+     * Verifica si este es un estado final (no permite más transiciones).
+     */
+    public boolean isFinalState() {
+        return this == CANCELLED || this == COMPLETED || this == NO_SHOW;
+    }
+
+    /**
      * Devuelve el nombre visible según idioma.
      * languageCode = "es", "en", etc.
      */
