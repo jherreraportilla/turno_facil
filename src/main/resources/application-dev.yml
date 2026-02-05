@@ -13,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update    # Solo en desarrollo
+      ddl-auto: validate  # Flyway gestiona el schema
     show-sql: true
     properties:
       hibernate:
@@ -33,8 +33,10 @@ spring:
 # ========================================
 app:
   email:
-    enabled: false        # Deshabilitado en desarrollo por defecto
+    enabled: ${EMAIL_ENABLED:true}  # Habilitado si hay credenciales SMTP configuradas
   show-error-details: true
+  dns:
+    mock-enabled: true  # Usa mock DNS en desarrollo
 
 # ========================================
 # LOGGING - Verbose para desarrollo
@@ -47,7 +49,7 @@ logging:
     # ADVERTENCIA: Esto loguea parametros de queries incluyendo datos sensibles
     # org.hibernate.type.descriptor.sql: TRACE
     org.thymeleaf: INFO
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
 
 # ========================================
 # SERVER - Desarrollo

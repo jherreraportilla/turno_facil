@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <th:block th:replace="~{fragments/head :: favicons}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi Pagina - TurnoFacil</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+</head>
+<body class="admin-page">
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 style="color: var(--tf-text-primary);">
+                <i class="bi bi-palette me-2" style="color: var(--tf-brand);"></i>
+                Mi Pagina Publica
+            </h2>
+            <p class="text-muted mb-0">Gestiona la galeria de imagenes de tu pagina publica</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a th:href="${publicLandingUrl}" target="_blank" class="btn btn-admin-secondary">
+                <i class="bi bi-eye me-1"></i>Ver pagina
+            </a>
+            <button class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#imageModal">
+                <i class="bi bi-plus-lg me-1"></i>Agregar imagen
+            </button>
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${success}">Exito</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${error}">Error</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Info -->
+    <div class="admin-card mb-4">
+        <div class="admin-card-body">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-info-circle fs-4" style="color: var(--tf-brand);"></i>
+                <div>
+                    <p class="mb-1">Los datos de tu negocio (descripcion, direccion, redes sociales) se configuran en
+                        <a th:href="@{/admin/config}" style="color: var(--tf-brand); font-weight: 600;">Configuracion</a>.
+                    </p>
+                    <p class="mb-0 text-muted small">Aqui solo gestionas las imagenes del portfolio que se muestran en tu pagina publica.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Galeria de imagenes -->
+    <div class="admin-card">
+        <div class="admin-card-body">
+            <div th:if="${portfolioImages.isEmpty()}" class="text-center py-5">
+                <i class="bi bi-images display-1" style="color: var(--tf-text-tertiary);"></i>
+                <p class="mt-3 fs-5 text-muted">No tienes imagenes en tu portfolio</p>
+                <p class="text-muted">Agrega imagenes para mostrar tu trabajo en la pagina publica</p>
+                <button class="btn btn-admin-primary mt-2" data-bs-toggle="modal" data-bs-target="#imageModal">
+                    <i class="bi bi-plus-lg me-1"></i>Agregar primera imagen
+                </button>
+            </div>
+
+            <div th:unless="${portfolioImages.isEmpty()}" class="row g-4">
+                <div th:each="image : ${portfolioImages}" class="col-md-6 col-lg-4">
+                    <div class="portfolio-admin-card">
+                        <div class="portfolio-img-wrapper">
+                            <img th:src="${image.imageUrl}" th:alt="${image.caption ?: 'Portfolio'}"
+                                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22300%22 height=%22200%22><rect fill=%22%23f0f0f0%22 width=%22300%22 height=%22200%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2214%22>Imagen no disponible</text></svg>'">
+                        </div>
+                        <div class="portfolio-card-body">
+                            <p class="mb-1" th:text="${image.caption ?: 'Sin descripcion'}"
+                               th:classappend="${image.caption == null} ? 'text-muted' : ''">Caption</p>
+                            <small class="text-muted">Orden: <span th:text="${image.displayOrder}">0</span></small>
+                        </div>
+                        <div class="portfolio-card-footer">
+                            <button class="btn btn-sm btn-outline-primary edit-image-btn"
+                                    th:data-id="${image.id}"
+                                    th:data-url="${image.imageUrl}"
+                                    th:data-caption="${image.caption}"
+                                    th:data-order="${image.displayOrder}">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-image-btn"
+                                    th:data-id="${image.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Agregar/Editar Imagen -->
+<div class="modal fade admin-modal" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageModalTitle">
+                    <i class="bi bi-image me-2"></i>
+                    Agregar imagen
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="imageForm" th:action="@{/admin/portfolio/images}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">URL de la imagen *</label>
+                        <input type="url" class="form-control" name="imageUrl" id="imageUrl" required
+                               placeholder="https://ejemplo.com/mi-foto.jpg">
+                        <small class="form-text">Pega la URL directa de la imagen (de Instagram, Google Drive, etc.)</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Descripcion</label>
+                        <input type="text" class="form-control" name="caption" id="imageCaption"
+                               placeholder="Ej: Corte degradado con diseno">
+                    </div>
+
+                    <div class="mb-3" id="orderField" style="display: none;">
+                        <label class="form-label fw-bold">Orden de visualizacion</label>
+                        <input type="number" class="form-control" name="displayOrder" id="imageOrder"
+                               min="0" value="0">
+                    </div>
+
+                    <!-- Preview -->
+                    <div id="imagePreview" class="text-center" style="display: none;">
+                        <label class="form-label fw-bold d-block text-start">Vista previa</label>
+                        <img id="previewImg" src="" alt="Preview"
+                             style="max-width: 100%; max-height: 200px; border-radius: 8px; object-fit: cover;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-admin-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-admin-primary">
+                        <i class="bi bi-check-circle me-2"></i>Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminacion -->
+<div class="modal fade admin-modal" id="deleteImageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Eliminar imagen
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <p>¿Estas seguro de eliminar esta imagen?</p>
+                <p class="text-muted small mb-0">Esta accion no se puede deshacer</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-admin-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteImageForm" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .portfolio-admin-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .portfolio-admin-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        transform: translateY(-2px);
+    }
+    .portfolio-img-wrapper {
+        width: 100%;
+        height: 200px;
+        overflow: hidden;
+        background: #f8f9fa;
+    }
+    .portfolio-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .portfolio-card-body {
+        padding: 15px 20px;
+    }
+    .portfolio-card-footer {
+        padding: 12px 20px;
+        background: #f8f9fa;
+        display: flex;
+        gap: 8px;
+    }
+</style>
+
+<script>
+    // Preview de imagen
+    document.getElementById('imageUrl').addEventListener('input', function() {
+        var url = this.value;
+        var preview = document.getElementById('imagePreview');
+        var img = document.getElementById('previewImg');
+        if (url && url.match(/^https?:\/\/.+/)) {
+            img.src = url;
+            preview.style.display = 'block';
+            img.onerror = function() { preview.style.display = 'none'; };
+        } else {
+            preview.style.display = 'none';
+        }
+    });
+
+    // Editar imagen
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.edit-image-btn');
+        if (btn) {
+            var id = btn.dataset.id;
+            document.getElementById('imageModalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar imagen';
+            document.getElementById('imageForm').action = '/admin/portfolio/images/' + id + '/update';
+            document.getElementById('imageUrl').value = btn.dataset.url || '';
+            document.getElementById('imageCaption').value = btn.dataset.caption || '';
+            document.getElementById('imageOrder').value = btn.dataset.order || 0;
+            document.getElementById('orderField').style.display = 'block';
+
+            // Trigger preview
+            document.getElementById('imageUrl').dispatchEvent(new Event('input'));
+
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
+        }
+    });
+
+    // Reset modal al cerrar
+    document.getElementById('imageModal').addEventListener('hidden.bs.modal', function() {
+        document.getElementById('imageModalTitle').innerHTML = '<i class="bi bi-image me-2"></i>Agregar imagen';
+        document.getElementById('imageForm').action = '/admin/portfolio/images';
+        document.getElementById('imageForm').reset();
+        document.getElementById('orderField').style.display = 'none';
+        document.getElementById('imagePreview').style.display = 'none';
+    });
+
+    // Eliminar imagen
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.delete-image-btn');
+        if (btn) {
+            var id = btn.dataset.id;
+            document.getElementById('deleteImageForm').action = '/admin/portfolio/images/' + id + '/delete';
+            new bootstrap.Modal(document.getElementById('deleteImageModal')).show();
+        }
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/notifications.js}"></script>
+</body>
+</html>

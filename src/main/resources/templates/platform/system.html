@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado del Sistema - TurnoFácil Platform</title>
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+    <style>
+        .platform-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .platform-header h1 {
+            color: #c9a227;
+            margin: 0;
+        }
+        .back-link {
+            color: #a0a0a0;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover {
+            color: #c9a227;
+        }
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .system-card {
+            background: #252540;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .system-card h3 {
+            color: #c9a227;
+            margin: 0 0 1rem 0;
+            font-size: 1.1rem;
+        }
+        .system-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #3a3a5a;
+        }
+        .system-row:last-child {
+            border-bottom: none;
+        }
+        .system-label {
+            color: #a0a0a0;
+        }
+        .system-value {
+            color: #e0e0e0;
+            font-weight: 500;
+        }
+        .status-online {
+            color: #28a745;
+        }
+        .status-offline {
+            color: #dc3545;
+        }
+        .memory-bar {
+            width: 100%;
+            height: 20px;
+            background: #3a3a5a;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .memory-used {
+            height: 100%;
+            background: linear-gradient(90deg, #c9a227, #b8912a);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a th:href="@{/platform/dashboard}" class="back-link">← Volver al Dashboard</a>
+
+        <div class="platform-header">
+            <h1>Estado del Sistema</h1>
+            <p>Información técnica de la plataforma</p>
+        </div>
+
+        <div class="system-grid">
+            <div class="system-card">
+                <h3>Entorno Java</h3>
+                <div class="system-row">
+                    <span class="system-label">Versión de Java</span>
+                    <span class="system-value" th:text="${javaVersion}"></span>
+                </div>
+                <div class="system-row">
+                    <span class="system-label">Sistema Operativo</span>
+                    <span class="system-value" th:text="${osName}"></span>
+                </div>
+                <div class="system-row">
+                    <span class="system-label">Procesadores</span>
+                    <span class="system-value" th:text="${availableProcessors}"></span>
+                </div>
+            </div>
+
+            <div class="system-card">
+                <h3>Memoria</h3>
+                <div class="system-row">
+                    <span class="system-label">Memoria Máxima</span>
+                    <span class="system-value" th:text="${maxMemory} + ' MB'"></span>
+                </div>
+                <div class="system-row">
+                    <span class="system-label">Memoria Libre</span>
+                    <span class="system-value" th:text="${freeMemory} + ' MB'"></span>
+                </div>
+                <div class="memory-bar">
+                    <div class="memory-used" th:style="'width: ' + ${100 - (freeMemory * 100 / maxMemory)} + '%'"></div>
+                </div>
+            </div>
+
+            <div class="system-card">
+                <h3>Cache</h3>
+                <div class="system-row">
+                    <span class="system-label">Proveedor</span>
+                    <span class="system-value" th:text="${cacheProvider}"></span>
+                </div>
+                <div class="system-row">
+                    <span class="system-label">Estado</span>
+                    <span class="system-value">
+                        <span th:if="${cacheAvailable}" class="status-online">Online</span>
+                        <span th:unless="${cacheAvailable}" class="status-offline">Offline</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

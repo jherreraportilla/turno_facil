@@ -104,7 +104,7 @@
         </div>
 
         <!-- Formulario -->
-        <form th:action="@{/register}" th:object="${user}" method="post" id="registerForm">
+        <form th:action="@{/auth/register}" th:object="${user}" method="post" id="registerForm">
 
           <div class="auth-form-group">
             <label for="name" class="auth-form-label">Nombre del negocio *</label>
@@ -147,18 +147,23 @@
 
           <div class="auth-form-group">
             <label for="password" class="auth-form-label">Contraseña *</label>
-            <input
-                    type="password"
-                    id="password"
-                    th:field="*{password}"
-                    class="auth-form-control"
-                    placeholder="Crea una contraseña segura"
-                    required
-                    minlength="8"
-                    autocomplete="off"
-                    data-lpignore="true"
-                    data-form-type="other"
-            >
+            <div class="password-input-wrapper">
+              <input
+                      type="password"
+                      id="password"
+                      th:field="*{password}"
+                      class="auth-form-control"
+                      placeholder="Crea una contraseña segura"
+                      required
+                      minlength="8"
+                      autocomplete="off"
+                      data-lpignore="true"
+                      data-form-type="other"
+              >
+              <button type="button" class="password-toggle" onclick="togglePassword('password', this)" aria-label="Mostrar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
             <div class="password-requirements">
               <small class="auth-form-text d-block mb-2">La contraseña debe cumplir:</small>
               <ul class="password-checklist">
@@ -181,7 +186,7 @@
         <div class="auth-footer">
           <p>
             ¿Ya tienes cuenta?
-            <a th:href="@{/login}">Inicia sesión</a>
+            <a th:href="@{/auth/login}">Inicia sesión</a>
           </p>
         </div>
 
@@ -192,6 +197,18 @@
 </div>
 
 <script>
+  function togglePassword(inputId, btn) {
+    var input = document.getElementById(inputId);
+    var icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'bi bi-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'bi bi-eye';
+    }
+  }
+
   // Animación de carga al enviar formulario
   document.getElementById('registerForm').addEventListener('submit', function(e) {
     const password = document.getElementById('password');

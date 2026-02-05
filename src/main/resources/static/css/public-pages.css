@@ -54,6 +54,21 @@
   pointer-events: none;
 }
 
+.booking-back-link {
+  position: absolute;
+  top: 1.25rem;
+  left: 1.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 0.9rem;
+  z-index: 1;
+  transition: color 0.2s;
+}
+
+.booking-back-link:hover {
+  color: white;
+}
+
 .booking-header .logo-img {
   width: 120px;
   height: 120px;
@@ -181,11 +196,12 @@
 }
 
 /* ========================================
-   5. CALENDARIO
+   5. CALENDARIO (Toast UI Calendar)
    ======================================== */
 .calendar-section {
-  background: white;
-  padding: 2.5rem 2rem;
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: var(--tf-radius-xl);
 }
 
 .calendar-section h3 {
@@ -193,84 +209,6 @@
   font-weight: 700;
   color: var(--tf-text-primary);
   margin-bottom: 1.5rem;
-}
-
-.fc {
-  font-family: var(--tf-font-family);
-}
-
-.fc .fc-button-primary {
-  background: var(--tf-brand) !important;
-  border: none !important;
-  border-radius: var(--tf-radius-lg) !important;
-  font-weight: 600 !important;
-  padding: 0.625rem 1.25rem !important;
-  transition: all var(--tf-transition-base) !important;
-}
-
-.fc .fc-button-primary:hover {
-  background: var(--tf-brand-hover) !important;
-}
-
-.fc .fc-button-primary:disabled {
-  background: var(--tf-text-tertiary) !important;
-  opacity: 0.5;
-}
-
-.fc .fc-button-primary.fc-button-active {
-  background: var(--tf-brand-hover) !important;
-}
-
-.fc .fc-toolbar-title {
-  color: var(--tf-text-primary);
-  font-weight: 700;
-  font-size: 1.35rem;
-}
-
-.fc .fc-col-header-cell {
-  background: var(--tf-bg-secondary);
-}
-
-.fc .fc-col-header-cell-cushion {
-  color: var(--tf-text-primary);
-  font-weight: 600;
-  padding: 0.75rem 0.5rem;
-}
-
-.fc .fc-daygrid-day-number,
-.fc .fc-timegrid-slot-label-cushion {
-  color: var(--tf-text-secondary);
-}
-
-.fc .fc-day-today {
-  background: rgba(212, 175, 116, 0.1) !important;
-}
-
-.fc .fc-timegrid-now-indicator-line {
-  border-color: var(--tf-brand);
-}
-
-.fc .fc-timegrid-now-indicator-arrow {
-  border-color: var(--tf-brand);
-  border-top-color: transparent;
-  border-bottom-color: transparent;
-}
-
-/* Slots ocupados */
-.fc .fc-timegrid-event.occupied-slot {
-  background: linear-gradient(135deg, var(--tf-danger) 0%, var(--tf-danger-hover) 100%) !important;
-  border: none !important;
-  opacity: 1 !important;
-  cursor: not-allowed !important;
-  border-radius: var(--tf-radius-sm) !important;
-}
-
-.fc .fc-timegrid-event.occupied-slot .fc-event-main {
-  padding: 6px !important;
-  color: white !important;
-  font-weight: 600 !important;
-  text-align: center !important;
-  font-size: 0.8rem !important;
 }
 
 /* Leyenda de bloqueos */
@@ -311,52 +249,108 @@
   flex-shrink: 0;
 }
 
-/* Bloqueos por tipo en calendario */
-.fc .blocked-slot {
-  opacity: 0.9 !important;
+/* Toast UI Calendar Container */
+#calendar {
+  height: 650px !important;
+  min-height: 650px;
+}
+
+/* Toast UI Calendar Theme Overrides - Tema Claro */
+.toastui-calendar-layout {
+  background: #ffffff !important;
+  height: 100% !important;
+}
+
+.toastui-calendar-day-names {
+  background: var(--tf-bg-secondary) !important;
+  border-bottom: 2px solid var(--tf-brand) !important;
+}
+
+.toastui-calendar-day-name {
+  color: var(--tf-text-primary) !important;
   font-weight: 600 !important;
-  font-size: 0.75rem !important;
-  cursor: not-allowed !important;
 }
 
-.fc .blocked-vacation {
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
-  border-color: #059669 !important;
+.toastui-calendar-weekday-grid {
+  background: #ffffff !important;
 }
 
-.fc .blocked-break {
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
-  border-color: #D97706 !important;
+.toastui-calendar-time {
+  color: var(--tf-text-secondary) !important;
 }
 
-.fc .blocked-meeting {
-  background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%) !important;
-  border-color: #2563EB !important;
+.toastui-calendar-today .toastui-calendar-weekday-grid-date,
+.toastui-calendar-day-name.toastui-calendar-today {
+  background: var(--tf-brand) !important;
+  color: #ffffff !important;
+  border-radius: 50%;
 }
 
-.fc .blocked-holiday {
-  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%) !important;
-  border-color: #DC2626 !important;
+.toastui-calendar-grid-selection {
+  background: rgba(212, 175, 116, 0.3) !important;
+  border: 2px solid var(--tf-brand) !important;
 }
 
-.fc .blocked-custom {
-  background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%) !important;
-  border-color: #4B5563 !important;
+.toastui-calendar-panel-resizer {
+  display: none !important;
 }
 
-.fc .blocked-slot .fc-event-main {
-  padding: 4px 6px !important;
-  color: white !important;
+.toastui-calendar-month-dayname {
+  background: var(--tf-bg-secondary) !important;
 }
 
-/* Vista semana/dia - franjas de bloqueo con borde lateral */
-.fc-timegrid .blocked-slot {
-  border-left: 4px solid rgba(255,255,255,0.5) !important;
+.toastui-calendar-month-dayname-item span {
+  color: var(--tf-text-primary) !important;
+  font-weight: 600 !important;
 }
 
-/* Vista mes - background events */
-.fc .fc-bg-event.blocked-slot {
-  opacity: 0.3 !important;
+.toastui-calendar-month-week-item {
+  border-color: var(--tf-border-color) !important;
+}
+
+.toastui-calendar-weekday-event {
+  border-radius: var(--tf-radius-sm) !important;
+}
+
+.toastui-calendar-timegrid-time-column {
+  background: var(--tf-bg-secondary) !important;
+}
+
+.toastui-calendar-timegrid-hour {
+  color: var(--tf-text-secondary) !important;
+}
+
+.toastui-calendar-timegrid {
+  background: #ffffff !important;
+}
+
+.toastui-calendar-timegrid-gridline {
+  border-color: var(--tf-border-color) !important;
+}
+
+.toastui-calendar-timegrid-time {
+  background: var(--tf-bg-secondary) !important;
+}
+
+.toastui-calendar-week-view-day-names {
+  background: var(--tf-bg-secondary) !important;
+}
+
+.toastui-calendar-panel {
+  background: #ffffff !important;
+}
+
+/* Now indicator */
+.toastui-calendar-timegrid-now-indicator {
+  border-color: var(--tf-brand) !important;
+}
+
+.toastui-calendar-timegrid-now-indicator-bullet {
+  background: var(--tf-brand) !important;
+}
+
+.toastui-calendar-timegrid-now-indicator-today {
+  background: rgba(212, 175, 116, 0.1) !important;
 }
 
 /* ========================================
@@ -877,6 +871,29 @@
     font-size: 1.1rem;
   }
 
+  .fc .fc-prev-button,
+  .fc .fc-next-button {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .fc .fc-button-group {
+    gap: 0.5rem;
+  }
+
+  .lock-timer-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .lock-timer-text .timer {
+    display: block;
+    font-size: 2rem;
+    margin-top: 0.25rem;
+  }
+
   .booking-summary {
     margin-bottom: 1.5rem;
   }
@@ -909,5 +926,484 @@
 
   .service-card .price {
     font-size: 1.25rem;
+  }
+}
+
+/* ========================================
+   TIMER DE LOCK - RESERVA TEMPORAL
+   ======================================== */
+.lock-timer-container {
+  background: linear-gradient(135deg, var(--tf-warning-light) 0%, #FFF3CD 100%);
+  border: 1px solid var(--tf-warning);
+  border-radius: var(--tf-radius-lg);
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.lock-timer-icon {
+  font-size: 1.5rem;
+  color: var(--tf-warning);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.lock-timer-text {
+  color: var(--tf-text-primary);
+  font-weight: 500;
+}
+
+.lock-timer-text .timer {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--tf-warning-hover);
+  font-family: 'Courier New', monospace;
+  margin-left: 0.5rem;
+}
+
+.lock-timer-container.warning {
+  background: linear-gradient(135deg, #FFEBEE 0%, #FFCDD2 100%);
+  border-color: var(--tf-danger);
+}
+
+.lock-timer-container.warning .lock-timer-icon {
+  color: var(--tf-danger);
+}
+
+.lock-timer-container.warning .timer {
+  color: var(--tf-danger);
+}
+
+.lock-timer-container.expired {
+  background: linear-gradient(135deg, #FFEBEE 0%, #EF9A9A 100%);
+  border-color: var(--tf-danger);
+}
+
+/* ========================================
+   LANDING PAGE STYLES
+   ======================================== */
+
+/* Layout */
+.landing-page {
+  padding: 0;
+}
+
+.landing-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ---- HERO ---- */
+.landing-hero {
+  position: relative;
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+.landing-hero-bg {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 30px 30px;
+  animation: bgDrift 20s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes bgDrift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(30px, 30px); }
+}
+
+.landing-hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-logo {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid rgba(255,255,255,0.3);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.landing-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.landing-logo-initials {
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-logo-initials span {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 2px;
+}
+
+.landing-hero h1 {
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 1rem;
+}
+
+.landing-hero-desc {
+  font-size: 1.15rem;
+  color: rgba(255,255,255,0.85);
+  max-width: 600px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+}
+
+.landing-hero-social {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 1.25rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.social-icon:hover {
+  background: rgba(255,255,255,0.3);
+  color: white;
+  transform: translateY(-3px);
+}
+
+/* ---- CTA BUTTON ---- */
+.landing-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 1rem 2.5rem;
+  background: white;
+  color: var(--tf-brand-hover);
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 50px;
+  text-decoration: none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.landing-cta-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  color: var(--tf-brand-active);
+}
+
+.landing-cta-btn-outline {
+  background: transparent;
+  color: var(--tf-brand-hover);
+  border: 2px solid var(--tf-brand);
+}
+
+.landing-cta-btn-outline:hover {
+  background: var(--tf-brand);
+  color: white;
+}
+
+/* ---- SECTIONS ---- */
+.landing-section {
+  padding: 4rem 0;
+}
+
+.landing-section-alt {
+  background: var(--tf-bg-secondary);
+}
+
+.landing-section-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.landing-section-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--tf-text-primary);
+}
+
+.landing-section-header h2 i {
+  color: var(--tf-brand);
+}
+
+/* ---- SERVICES GRID ---- */
+.landing-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.landing-service-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.landing-service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.landing-service-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.landing-service-card h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--tf-text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.landing-service-desc {
+  font-size: 0.9rem;
+  color: var(--tf-text-secondary);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.landing-service-meta {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+  color: var(--tf-text-tertiary);
+}
+
+.landing-service-price {
+  font-weight: 700;
+  color: var(--tf-brand-hover);
+}
+
+/* ---- GALLERY ---- */
+.landing-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.landing-gallery-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: #f0f0f0;
+}
+
+.landing-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.landing-gallery-item:hover img {
+  transform: scale(1.05);
+}
+
+.landing-gallery-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1rem 1rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.7));
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* ---- SCHEDULE ---- */
+.landing-schedule-card {
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.landing-schedule-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--tf-border-light);
+}
+
+.landing-schedule-row:last-child {
+  border-bottom: none;
+}
+
+.landing-schedule-label {
+  color: var(--tf-text-secondary);
+  font-weight: 500;
+}
+
+.landing-schedule-value {
+  font-weight: 700;
+  color: var(--tf-text-primary);
+}
+
+/* ---- LOCATION ---- */
+.landing-location-card {
+  max-width: 700px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.landing-address {
+  padding: 1.5rem;
+  font-size: 1.05rem;
+  color: var(--tf-text-primary);
+}
+
+.landing-map {
+  width: 100%;
+}
+
+.landing-map iframe {
+  display: block;
+  border-radius: 0 !important;
+}
+
+/* ---- FOOTER ---- */
+.landing-footer {
+  background: var(--tf-text-primary);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.landing-footer-social {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.landing-footer-social a {
+  color: rgba(255,255,255,0.6);
+  font-size: 1.25rem;
+  transition: color 0.3s;
+  text-decoration: none;
+}
+
+.landing-footer-social a:hover {
+  color: var(--tf-brand);
+}
+
+.landing-powered {
+  margin-top: 1.5rem;
+  color: rgba(255,255,255,0.4);
+  font-size: 0.85rem;
+}
+
+.landing-powered a {
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ---- LANDING RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .landing-hero {
+    padding: 3.5rem 1.5rem 3rem;
+  }
+
+  .landing-hero h1 {
+    font-size: 2rem;
+  }
+
+  .landing-hero-desc {
+    font-size: 1rem;
+  }
+
+  .landing-section {
+    padding: 3rem 0;
+  }
+
+  .landing-section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .landing-services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .landing-cta-btn {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-hero h1 {
+    font-size: 1.75rem;
+  }
+
+  .landing-logo {
+    width: 80px;
+    height: 80px;
+  }
+
+  .landing-logo-initials span {
+    font-size: 2rem;
   }
 }

@@ -6,13 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${config.businessName + ' - Reserva tu turno'}">TurnoFacil</title>
 
+    <!-- SEO Meta Tags -->
+    <meta name="description" th:content="${config.businessName + ' - Reserva tu cita online de forma rapida y sencilla'}">
+    <meta name="robots" content="index, follow">
+    <meta property="og:type" content="website">
+    <meta property="og:title" th:content="${config.businessName + ' - Reserva tu turno'}">
+    <meta property="og:description" th:content="${config.businessName + ' - Reserva tu cita online de forma rapida y sencilla'}">
+    <meta property="og:image" th:if="${config.logoUrl}" th:content="${config.logoUrl}">
+
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- FullCalendar -->
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet"/>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <!-- Toast UI Calendar (via jsDelivr) -->
+    <link href="https://cdn.jsdelivr.net/npm/@toast-ui/calendar@2.1.3/dist/toastui-calendar.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/@toast-ui/calendar@2.1.3/dist/toastui-calendar.min.js"></script>
 
     <!-- TurnoFacil Theme -->
     <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
@@ -46,6 +54,9 @@
 
         <!-- HEADER -->
         <div class="booking-header">
+            <a th:href="@{'/public/' + ${config.slug}}" class="booking-back-link">
+                <i class="bi bi-arrow-left me-1"></i> Volver al sitio
+            </a>
             <div class="logo-placeholder">
                 <span th:text="${#strings.substring(config.businessName, 0, 2).toUpperCase()}">NE</span>
             </div>
@@ -170,6 +181,14 @@
         <!-- PASO 2: FORMULARIO -->
         <div id="step2" class="step">
             <div class="booking-form-section">
+                <!-- Timer de lock -->
+                <div id="lockTimer" class="lock-timer-container">
+                    <i class="bi bi-hourglass-split lock-timer-icon"></i>
+                    <div class="lock-timer-text">
+                        Completa tu reserva en <span class="timer" id="timerDisplay">3:00</span>
+                    </div>
+                </div>
+
                 <!-- Resumen de la reserva -->
                 <div class="booking-summary">
                     <h3><i class="bi bi-clipboard-check me-2"></i>Resumen de tu reserva</h3>
@@ -286,8 +305,9 @@
             });
         });
 
-        // TURNOS OCUPADOS
-        const occupiedEvents = [[${occupiedAppointments}]];
+        // TURNOS OCUPADOS (se cargan inicialmente y se refrescan dinámicamente)
+        let occupiedEvents = [[${occupiedAppointments}]];
+        const slugForApi = /*[[ ${config.slug} ]]*/ '';
 
         // BLOQUEOS DE HORARIO
         const blockedSlots = [[${blockedSlots}]];
@@ -296,70 +316,61 @@
         const workingDaysStr = /*[[ ${config.workingDays} ]]*/ '1,2,3,4,5';
         const workingDays = workingDaysStr.split(',').map(s => parseInt(s.trim()));
 
-        // Convertir turnos ocupados a eventos de calendario
-        const occupiedCalendarEvents = occupiedEvents.map(a => ({
-            title: 'NO DISPONIBLE',
+        // Configuracion horaria
+        const openingTime = /*[[ ${config.openingTime} ]]*/ '09:00';
+        const closingTime = /*[[ ${config.closingTime} ]]*/ '20:00';
+
+        // Convertir turnos ocupados a eventos de Toast UI Calendar
+        const occupiedCalendarEvents = occupiedEvents.map((a, idx) => ({
+            id: 'occupied-' + idx,
+            calendarId: 'occupied',
+            title: 'OCUPADO',
             start: a.start,
             end: a.end,
-            allDay: false,
+            isReadOnly: true,
+            category: 'time',
             backgroundColor: '#C45C4A',
             borderColor: '#A94A3A',
-            textColor: '#ffffff',
-            classNames: ['occupied-slot'],
-            editable: false,
-            display: 'block'
+            color: '#ffffff'
         }));
 
-        // Convertir bloqueos a eventos de calendario
-        const blockedCalendarEvents = blockedSlots.flatMap(b => {
+        // Convertir bloqueos a eventos de Toast UI Calendar
+        const blockedCalendarEvents = blockedSlots.flatMap((b, idx) => {
             const events = [];
             const startDate = new Date(b.startDate);
             const endDate = new Date(b.endDate);
 
-            // Clase CSS basada en el tipo de bloqueo
-            const typeClass = 'blocked-' + (b.type || 'custom').toLowerCase();
-
-            // Iterar por cada dia del bloqueo
             for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                 const dateStr = d.toISOString().split('T')[0];
+                const bgColor = b.color || '#6B7280';
 
                 if (b.allDay) {
-                    // Evento de fondo para dia completo
+                    // Para bloqueos de día completo, crear evento que cubra todo el horario laboral
                     events.push({
+                        id: 'blocked-' + idx + '-' + dateStr,
+                        calendarId: 'blocked',
                         title: b.title,
-                        start: dateStr,
-                        allDay: true,
-                        backgroundColor: b.color || '#6B7280',
-                        borderColor: b.color || '#6B7280',
-                        textColor: '#ffffff',
-                        classNames: ['blocked-slot', typeClass],
-                        editable: false,
-                        display: 'background'
-                    });
-                    // Indicador visible en vista mes
-                    events.push({
-                        title: b.title,
-                        start: dateStr,
-                        allDay: true,
-                        backgroundColor: b.color || '#6B7280',
-                        borderColor: b.color || '#6B7280',
-                        textColor: '#ffffff',
-                        classNames: ['blocked-slot', typeClass, 'blocked-indicator'],
-                        editable: false,
-                        display: 'block'
+                        start: dateStr + 'T' + openingTime + ':00',
+                        end: dateStr + 'T' + closingTime + ':00',
+                        isAllDay: false,
+                        isReadOnly: true,
+                        category: 'time',
+                        backgroundColor: bgColor,
+                        borderColor: bgColor,
+                        color: '#ffffff'
                     });
                 } else if (b.startTime && b.endTime) {
                     events.push({
+                        id: 'blocked-' + idx + '-' + dateStr,
+                        calendarId: 'blocked',
                         title: b.title,
-                        start: dateStr + 'T' + b.startTime,
-                        end: dateStr + 'T' + b.endTime,
-                        allDay: false,
-                        backgroundColor: b.color || '#6B7280',
-                        borderColor: b.color || '#6B7280',
-                        textColor: '#ffffff',
-                        classNames: ['blocked-slot', typeClass],
-                        editable: false,
-                        display: 'block'
+                        start: dateStr + 'T' + b.startTime + ':00',
+                        end: dateStr + 'T' + b.endTime + ':00',
+                        isReadOnly: true,
+                        category: 'time',
+                        backgroundColor: bgColor,
+                        borderColor: bgColor,
+                        color: '#ffffff'
                     });
                 }
             }
@@ -369,67 +380,244 @@
         // Combinar todos los eventos
         const allEvents = [...occupiedCalendarEvents, ...blockedCalendarEvents];
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        // Crear el calendario Toast UI
+        const Calendar = tui.Calendar;
+        const calendar = new Calendar(calendarEl, {
+            defaultView: 'week',
+            usageStatistics: false,
+            isReadOnly: false,
+            useDetailPopup: false,
+            useFormPopup: false,
+            week: {
+                startDayOfWeek: 1,
+                dayNames: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+                hourStart: parseInt(openingTime.split(':')[0]),
+                hourEnd: parseInt(closingTime.split(':')[0]),
+                taskView: false,
+                eventView: ['allday', 'time'],
+                showNowIndicator: true,
+                showTimezoneCollapseButton: false,
+                timezonesCollapsed: true
             },
-            buttonText: { today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Dia' },
-            locale: 'es',
-            validRange: { start: new Date() },
-            businessHours: {
-                daysOfWeek: workingDays,
-                startTime: /*[[ ${config.openingTime} ]]*/ '09:00',
-                endTime: /*[[ ${config.closingTime} ]]*/ '20:00'
+            month: {
+                startDayOfWeek: 1,
+                dayNames: ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'],
+                narrowWeekend: false,
+                visibleWeeksCount: 0
             },
-            slotDuration: '00:30:00',
-            slotMinTime: /*[[ ${config.openingTime} ]]*/ '09:00',
-            slotMaxTime: /*[[ ${config.closingTime} ]]*/ '20:00',
-            height: 700,
-            nowIndicator: true,
-            events: allEvents,
-
-            dateClick: function (info) {
-                if (info.dayEl.classList.contains('fc-day-disabled')) return;
-
-                const clickedTime = info.dateStr;
-                const clickStart = new Date(clickedTime);
-                const clickEnd = new Date(clickStart.getTime() + selectedDuration * 60000);
-
-                // Verificar si esta ocupado o bloqueado
-                const isBlocked = isTimeSlotBlocked(clickStart, clickEnd, occupiedEvents, blockedSlots);
-
-                if (isBlocked) {
-                    showBookingAlert('Este horario no esta disponible. Por favor, elige otro.');
-                    return;
+            calendars: [
+                {
+                    id: 'occupied',
+                    name: 'Ocupados',
+                    backgroundColor: '#C45C4A',
+                    borderColor: '#A94A3A',
+                    color: '#ffffff'
+                },
+                {
+                    id: 'blocked',
+                    name: 'Bloqueados',
+                    backgroundColor: '#6B7280',
+                    borderColor: '#6B7280',
+                    color: '#ffffff'
                 }
-
-                const date = info.dateStr.split('T')[0];
-                const time = info.dateStr.split('T')[1]?.substring(0, 5) || info.date.toTimeString().substring(0, 5);
-
-                selectedDate = date;
-                selectedTime = time;
-
-                document.getElementById('finalDate').value = date;
-                document.getElementById('finalTime').value = time;
-                document.getElementById('finalDuration').value = selectedDuration;
-                document.getElementById('finalServiceId').value = selectedServiceId || '';
-
-                // Actualizar resumen
-                updateBookingSummary();
-
-                // Actualizar indicador de progreso
-                updateProgress(3);
-
-                document.getElementById('step1').classList.remove('active');
-                document.getElementById('step2').classList.add('active');
-
-                document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+            ],
+            theme: {
+                common: {
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e5e7eb',
+                    dayName: { color: '#374151' },
+                    holiday: { color: '#C45C4A' },
+                    saturday: { color: '#6366f1' },
+                    today: { color: '#D4AF74' },
+                    gridSelection: {
+                        backgroundColor: 'rgba(212, 175, 116, 0.3)',
+                        border: '2px solid #D4AF74'
+                    }
+                },
+                week: {
+                    dayName: {
+                        borderLeft: '1px solid #e5e7eb',
+                        borderTop: '1px solid #e5e7eb',
+                        borderBottom: '2px solid #D4AF74',
+                        backgroundColor: '#f9fafb'
+                    },
+                    dayGrid: {
+                        borderRight: '1px solid #e5e7eb'
+                    },
+                    dayGridLeft: {
+                        borderRight: '1px solid #e5e7eb',
+                        backgroundColor: '#f9fafb',
+                        width: '60px'
+                    },
+                    timeGrid: {
+                        borderRight: '1px solid #e5e7eb'
+                    },
+                    timeGridLeft: {
+                        borderRight: '1px solid #e5e7eb',
+                        backgroundColor: '#f9fafb',
+                        width: '60px'
+                    },
+                    timeGridLeftAdditionalTimezone: {
+                        backgroundColor: '#f9fafb'
+                    },
+                    timeGridHalfHourLine: {
+                        borderBottom: '1px dotted #e5e7eb'
+                    },
+                    timeGridHourLine: {
+                        borderBottom: '1px solid #d1d5db'
+                    },
+                    nowIndicatorLabel: {
+                        color: '#D4AF74'
+                    },
+                    nowIndicatorPast: {
+                        border: '1px dashed #D4AF74'
+                    },
+                    nowIndicatorBullet: {
+                        backgroundColor: '#D4AF74'
+                    },
+                    nowIndicatorToday: {
+                        border: '2px solid #D4AF74'
+                    },
+                    pastTime: {
+                        color: '#9ca3af'
+                    },
+                    futureTime: {
+                        color: '#374151'
+                    },
+                    gridSelection: {
+                        color: '#D4AF74'
+                    }
+                },
+                month: {
+                    dayName: {
+                        borderLeft: '1px solid #e5e7eb',
+                        backgroundColor: '#f9fafb'
+                    },
+                    holidayExceptThisMonth: { color: 'rgba(196, 92, 74, 0.4)' },
+                    dayExceptThisMonth: { color: '#d1d5db' },
+                    moreView: {
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #e5e7eb'
+                    },
+                    moreViewTitle: {
+                        backgroundColor: '#f9fafb'
+                    }
+                }
+            },
+            template: {
+                time: function(event) {
+                    return '<span style="color: ' + (event.color || '#fff') + ';">' + event.title + '</span>';
+                },
+                allday: function(event) {
+                    return '<span style="color: ' + (event.color || '#fff') + ';">' + event.title + '</span>';
+                },
+                timegridDisplayPrimaryTime: function(props) {
+                    const hour = props.time.getHours();
+                    const minutes = props.time.getMinutes();
+                    return (hour < 10 ? '0' : '') + hour + ':' + (minutes < 10 ? '0' : '') + minutes;
+                },
+                timegridNowIndicatorLabel: function(props) {
+                    const hour = props.time.getHours();
+                    const minutes = props.time.getMinutes();
+                    return (hour < 10 ? '0' : '') + hour + ':' + (minutes < 10 ? '0' : '') + minutes;
+                }
             }
         });
-        calendar.render();
+
+        // Cargar eventos iniciales
+        calendar.createEvents(allEvents);
+
+        // Crear controles de navegacion personalizados
+        createCalendarControls(calendar);
+
+        // Evento click en celda del calendario
+        calendar.on('selectDateTime', function(info) {
+            const clickStart = new Date(info.start);
+            const clickEnd = new Date(clickStart.getTime() + selectedDuration * 60000);
+
+            // Verificar si esta en el pasado
+            if (clickStart < new Date()) {
+                showBookingAlert('No puedes reservar en fechas pasadas.');
+                calendar.clearGridSelections();
+                return;
+            }
+
+            // Verificar si esta ocupado o bloqueado
+            const isBlocked = isTimeSlotBlocked(clickStart, clickEnd, occupiedEvents, blockedSlots);
+
+            if (isBlocked) {
+                showBookingAlert('Este horario no esta disponible. Por favor, elige otro.');
+                calendar.clearGridSelections();
+                return;
+            }
+
+            // Verificar dia de trabajo
+            const dayOfWeek = clickStart.getDay() === 0 ? 7 : clickStart.getDay();
+            if (!workingDays.includes(dayOfWeek)) {
+                showBookingAlert('Este dia no esta disponible para citas.');
+                calendar.clearGridSelections();
+                return;
+            }
+
+            const date = clickStart.toISOString().split('T')[0];
+            const time = clickStart.toTimeString().substring(0, 5);
+
+            selectedDate = date;
+            selectedTime = time;
+
+            document.getElementById('finalDate').value = date;
+            document.getElementById('finalTime').value = time;
+            document.getElementById('finalDuration').value = selectedDuration;
+            document.getElementById('finalServiceId').value = selectedServiceId || '';
+
+            // Actualizar resumen
+            updateBookingSummary();
+
+            // Actualizar indicador de progreso
+            updateProgress(3);
+
+            document.getElementById('step1').classList.remove('active');
+            document.getElementById('step2').classList.add('active');
+
+            // Iniciar timer de lock
+            startLockTimer();
+
+            document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+            calendar.clearGridSelections();
+        });
+
+        // Detener timer cuando se envia el formulario
+        const bookingForm = document.querySelector('.booking-form');
+        if (bookingForm) {
+            bookingForm.addEventListener('submit', function() {
+                stopLockTimer();
+            });
+        }
+
+        // Auto-refresh del calendario cada 30 segundos
+        setInterval(function() {
+            fetch('/public/book/' + slugForApi + '/occupied-slots')
+                .then(r => r.json())
+                .then(data => {
+                    occupiedEvents = data;
+                    // Limpiar eventos ocupados y volver a crear
+                    calendar.clear();
+                    const newOccupied = data.map((a, idx) => ({
+                        id: 'occupied-' + idx,
+                        calendarId: 'occupied',
+                        title: 'OCUPADO',
+                        start: a.start,
+                        end: a.end,
+                        isReadOnly: true,
+                        category: 'time',
+                        backgroundColor: '#C45C4A',
+                        borderColor: '#A94A3A',
+                        color: '#ffffff'
+                    }));
+                    calendar.createEvents([...newOccupied, ...blockedCalendarEvents]);
+                })
+                .catch(() => {});
+        }, 30000);
 
         // Funcion para verificar si un slot esta bloqueado
         function isTimeSlotBlocked(start, end, occupied, blocked) {
@@ -463,12 +651,127 @@
 
             return false;
         }
+
+        // Crear controles de navegacion
+        function createCalendarControls(cal) {
+            const controlsHtml = `
+                <div class="tui-calendar-controls">
+                    <div class="tui-nav-buttons">
+                        <button type="button" class="btn-cal-nav" id="calPrev">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn-cal-today" id="calToday">Hoy</button>
+                        <button type="button" class="btn-cal-nav" id="calNext">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                    <h3 class="tui-calendar-title" id="calTitle"></h3>
+                    <div class="tui-view-buttons">
+                        <button type="button" class="btn-cal-view active" data-view="week">Semana</button>
+                        <button type="button" class="btn-cal-view" data-view="month">Mes</button>
+                        <button type="button" class="btn-cal-view" data-view="day">Dia</button>
+                    </div>
+                </div>
+            `;
+            calendarEl.insertAdjacentHTML('beforebegin', controlsHtml);
+
+            // Actualizar titulo
+            updateCalendarTitle(cal);
+
+            // Event listeners
+            document.getElementById('calPrev').addEventListener('click', () => {
+                cal.prev();
+                updateCalendarTitle(cal);
+            });
+            document.getElementById('calNext').addEventListener('click', () => {
+                cal.next();
+                updateCalendarTitle(cal);
+            });
+            document.getElementById('calToday').addEventListener('click', () => {
+                cal.today();
+                updateCalendarTitle(cal);
+            });
+
+            document.querySelectorAll('.btn-cal-view').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.btn-cal-view').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    cal.changeView(this.dataset.view);
+                    updateCalendarTitle(cal);
+                });
+            });
+        }
+
+        function updateCalendarTitle(cal) {
+            const date = cal.getDate().toDate();
+            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('calTitle').textContent = months[date.getMonth()] + ' ' + date.getFullYear();
+        }
     });
 
+    // ====== TIMER DE LOCK ======
+    let lockTimerInterval = null;
+    let lockTimeRemaining = 180; // 3 minutos en segundos
+
+    function startLockTimer() {
+        lockTimeRemaining = 180;
+        updateTimerDisplay();
+
+        if (lockTimerInterval) {
+            clearInterval(lockTimerInterval);
+        }
+
+        lockTimerInterval = setInterval(function() {
+            lockTimeRemaining--;
+            updateTimerDisplay();
+
+            const timerContainer = document.getElementById('lockTimer');
+
+            // Advertencia cuando queda menos de 1 minuto
+            if (lockTimeRemaining <= 60 && lockTimeRemaining > 0) {
+                timerContainer.classList.add('warning');
+                timerContainer.classList.remove('expired');
+            }
+
+            // Expirado
+            if (lockTimeRemaining <= 0) {
+                clearInterval(lockTimerInterval);
+                timerContainer.classList.add('expired');
+                timerContainer.classList.remove('warning');
+                showBookingAlert('El tiempo ha expirado. Por favor, selecciona un horario nuevamente.');
+                setTimeout(function() {
+                    backToCalendar();
+                }, 2000);
+            }
+        }, 1000);
+    }
+
+    function stopLockTimer() {
+        if (lockTimerInterval) {
+            clearInterval(lockTimerInterval);
+            lockTimerInterval = null;
+        }
+    }
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(lockTimeRemaining / 60);
+        const seconds = lockTimeRemaining % 60;
+        const display = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        document.getElementById('timerDisplay').textContent = display;
+    }
+
     function backToCalendar() {
+        stopLockTimer();
         document.getElementById('step2').classList.remove('active');
         document.getElementById('step1').classList.add('active');
         updateProgress(2);
+
+        // Resetear timer visual
+        const timerContainer = document.getElementById('lockTimer');
+        timerContainer.classList.remove('warning', 'expired');
+        document.getElementById('timerDisplay').textContent = '3:00';
+
         document.querySelector('.calendar-section').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -548,6 +851,166 @@
         font-size: 18px;
         z-index: 9999;
         animation: slideDown 0.5s ease-out;
+    }
+
+    /* Toast UI Calendar Controls - Tema Claro */
+    .tui-calendar-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        background: #f9fafb;
+        border-radius: 12px 12px 0 0;
+        border-bottom: 2px solid #D4AF74;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .tui-nav-buttons {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-cal-nav {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        color: #374151;
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .btn-cal-nav:hover {
+        background: #D4AF74;
+        border-color: #D4AF74;
+        color: #ffffff;
+    }
+
+    .btn-cal-today {
+        background: linear-gradient(135deg, #D4AF74 0%, #C9A227 100%);
+        border: none;
+        color: #ffffff;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(212, 175, 116, 0.3);
+    }
+
+    .btn-cal-today:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(212, 175, 116, 0.4);
+    }
+
+    .tui-calendar-title {
+        color: #374151;
+        font-size: 1.35rem;
+        font-weight: 700;
+        margin: 0;
+        flex: 1;
+        text-align: center;
+    }
+
+    .tui-view-buttons {
+        display: flex;
+        gap: 4px;
+        background: #e5e7eb;
+        padding: 4px;
+        border-radius: 10px;
+    }
+
+    .btn-cal-view {
+        background: transparent;
+        border: none;
+        color: #6b7280;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .btn-cal-view:hover {
+        color: #374151;
+        background: rgba(255,255,255,0.5);
+    }
+
+    .btn-cal-view.active {
+        background: #ffffff;
+        color: #D4AF74;
+        font-weight: 600;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Toast UI Calendar Container Styles */
+    #calendar {
+        height: 600px !important;
+        min-height: 600px;
+        border-radius: 0 0 12px 12px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    /* Toast UI Calendar overrides - Tema Claro */
+    .toastui-calendar-layout {
+        background: #ffffff !important;
+    }
+
+    .toastui-calendar-day-names {
+        background: #f9fafb !important;
+    }
+
+    .toastui-calendar-day-name {
+        color: #374151 !important;
+        font-weight: 600 !important;
+    }
+
+    .toastui-calendar-grid-selection {
+        background: rgba(212, 175, 116, 0.3) !important;
+        border: 2px solid #D4AF74 !important;
+    }
+
+    .toastui-calendar-weekday-grid {
+        background: #ffffff !important;
+    }
+
+    .toastui-calendar-time {
+        color: #6b7280 !important;
+    }
+
+    .toastui-calendar-today .toastui-calendar-weekday-grid-date {
+        background: #D4AF74 !important;
+        color: #1a1a2e !important;
+    }
+
+    .toastui-calendar-panel-resizer {
+        display: none !important;
+    }
+
+    @media (max-width: 768px) {
+        .tui-calendar-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .tui-nav-buttons,
+        .tui-view-buttons {
+            justify-content: center;
+        }
+
+        .tui-calendar-title {
+            order: -1;
+            text-align: center;
+        }
     }
 </style>
 

@@ -15,6 +15,9 @@ public interface BlockedSlotRepository extends JpaRepository<BlockedSlot, Long> 
 
     List<BlockedSlot> findByBusinessIdAndStartDateGreaterThanEqualOrderByStartDateAsc(Long businessId, LocalDate date);
 
+    // Bloqueos que todavia no han terminado (para mostrar en calendario publico)
+    List<BlockedSlot> findByBusinessIdAndEndDateGreaterThanEqualOrderByStartDateAsc(Long businessId, LocalDate date);
+
     @Query("SELECT b FROM BlockedSlot b WHERE b.business.id = :businessId " +
            "AND b.startDate <= :date AND b.endDate >= :date")
     List<BlockedSlot> findBlocksForDate(@Param("businessId") Long businessId,

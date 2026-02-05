@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métricas SaaS - TurnoFácil Platform</title>
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+    <style>
+        .platform-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .platform-header h1 {
+            color: #c9a227;
+            margin: 0;
+        }
+        .back-link {
+            color: #a0a0a0;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover {
+            color: #c9a227;
+        }
+        .metrics-section {
+            background: #252540;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .metrics-section h2 {
+            color: #c9a227;
+            margin: 0 0 1.5rem 0;
+            font-size: 1.2rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #3a3a5a;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        .metric-item {
+            text-align: center;
+            padding: 1rem;
+            background: #1a1a2e;
+            border-radius: 8px;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #c9a227;
+        }
+        .metric-value.large {
+            font-size: 2.5rem;
+        }
+        .metric-label {
+            color: #a0a0a0;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+        .highlight-card {
+            background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%);
+            border: 2px solid #c9a227;
+        }
+        .growth-positive {
+            color: #28a745;
+        }
+        .growth-negative {
+            color: #dc3545;
+        }
+        .growth-neutral {
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a th:href="@{/platform/dashboard}" class="back-link">← Volver al Dashboard</a>
+
+        <div class="platform-header">
+            <h1>Métricas SaaS</h1>
+            <p>Indicadores clave de rendimiento de la plataforma</p>
+        </div>
+
+        <!-- Ingresos -->
+        <div class="metrics-section">
+            <h2>Ingresos</h2>
+            <div class="metrics-grid">
+                <div class="metric-item highlight-card">
+                    <div class="metric-value large" th:text="${#numbers.formatCurrency(metrics.subscriptions.mrr)}">$0.00</div>
+                    <div class="metric-label">MRR</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${#numbers.formatCurrency(metrics.subscriptions.mrr * 12)}">$0.00</div>
+                    <div class="metric-label">ARR (proyectado)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Usuarios -->
+        <div class="metrics-section">
+            <h2>Usuarios</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.totalBusinesses}">0</div>
+                    <div class="metric-label">Total Registrados</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.activeBusinesses}">0</div>
+                    <div class="metric-label">Activos (30d)</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value"
+                         th:text="${metrics.totalBusinesses > 0 ? #numbers.formatDecimal(metrics.activeBusinesses * 100.0 / metrics.totalBusinesses, 1, 1) + '%' : '0%'}">0%</div>
+                    <div class="metric-label">Tasa de Actividad</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suscripciones -->
+        <div class="metrics-section">
+            <h2>Suscripciones</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.subscriptions.active}">0</div>
+                    <div class="metric-label">Activas</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.subscriptions.trial}">0</div>
+                    <div class="metric-label">En Trial</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.subscriptions.cancelled}">0</div>
+                    <div class="metric-label">Canceladas</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribución de Planes -->
+        <div class="metrics-section">
+            <h2>Distribución de Planes</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.subscriptions.freePlan}">0</div>
+                    <div class="metric-label">Plan Free</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.subscriptions.proPlan}">0</div>
+                    <div class="metric-label">Plan Pro</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.subscriptions.businessPlan}">0</div>
+                    <div class="metric-label">Plan Business</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crecimiento -->
+        <div class="metrics-section">
+            <h2>Crecimiento</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.growth.newThisMonth}">0</div>
+                    <div class="metric-label">Nuevos este mes</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.growth.newLastMonth}">0</div>
+                    <div class="metric-label">Nuevos mes anterior</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value"
+                         th:classappend="${metrics.growth.growthRatePercent > 0 ? 'growth-positive' : (metrics.growth.growthRatePercent < 0 ? 'growth-negative' : 'growth-neutral')}"
+                         th:text="${(metrics.growth.growthRatePercent >= 0 ? '+' : '') + #numbers.formatDecimal(metrics.growth.growthRatePercent, 1, 1) + '%'}">0%</div>
+                    <div class="metric-label">Crecimiento MoM</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Uso -->
+        <div class="metrics-section">
+            <h2>Uso de la Plataforma</h2>
+            <div class="metrics-grid">
+                <div class="metric-item">
+                    <div class="metric-value" th:text="${metrics.totalAppointments}">0</div>
+                    <div class="metric-label">Citas Totales</div>
+                </div>
+                <div class="metric-item">
+                    <div class="metric-value"
+                         th:text="${metrics.totalBusinesses > 0 ? #numbers.formatDecimal(metrics.totalAppointments * 1.0 / metrics.totalBusinesses, 1, 1) : '0'}">0</div>
+                    <div class="metric-label">Promedio por Negocio</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

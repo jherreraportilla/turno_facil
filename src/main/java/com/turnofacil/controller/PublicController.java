@@ -13,13 +13,11 @@ import com.turnofacil.service.BusinessConfigService;
 import com.turnofacil.service.RateLimiterService;
 import com.turnofacil.service.ServiceService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.util.HtmlUtils;
@@ -97,7 +95,7 @@ public class PublicController {
                     event.put("startDate", dto.startDate().toString());
                     event.put("endDate", dto.endDate().toString());
                     event.put("allDay", dto.allDay());
-                    event.put("type", "BLOCKED");
+                    event.put("type", block.getType() != null ? block.getType().name() : "CUSTOM");
                     event.put("color", dto.color());
                     if (!dto.allDay()) {
                         event.put("startTime", dto.startTime() != null ? dto.startTime().toString() : null);
@@ -118,16 +116,41 @@ public class PublicController {
         return "public/booking";
     }
 
+    // Endpoint AJAX para obtener slots ocupados (actualización dinámica del calendario)
+    @GetMapping("/{slug}/occupied-slots")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getOccupiedSlots(@PathVariable String slug) {
+        BusinessConfig config = businessConfigService.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException("Negocio", "slug", slug));
+
+        List<Appointment> appointments = appointmentService.getAllByBusiness(config.getUser());
+
+        List<Map<String, Object>> slots = appointments.stream()
+                .map(appointment -> {
+                    PublicSlotDto dto = PublicSlotDto.fromAppointment(appointment);
+                    Map<String, Object> slot = new HashMap<>();
+                    slot.put("date", dto.date().toString());
+                    slot.put("time", dto.time().toString());
+                    slot.put("start", dto.getStartIso());
+                    slot.put("duration", dto.duration());
+                    slot.put("end", dto.getEndIso());
+                    return slot;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(slots);
+    }
+
     @PostMapping("/{slug}")
     public String bookAppointment(@PathVariable String slug,
                                   @RequestParam LocalDate date,
                                   @RequestParam LocalTime time,
                                   @RequestParam Integer duration,
                                   @RequestParam(required = false) Long serviceId,
-                                  @RequestParam @NotBlank @Size(min = 2, max = 100) String clientName,
-                                  @RequestParam @NotBlank @Size(min = 9, max = 20) String clientPhone,
-                                  @RequestParam(required = false) @Email @Size(max = 100) String clientEmail,
-                                  @RequestParam(required = false) @Size(max = 500) String notes,
+                                  @RequestParam String clientName,
+                                  @RequestParam String clientPhone,
+                                  @RequestParam(required = false) String clientEmail,
+                                  @RequestParam(required = false) String notes,
                                   RedirectAttributes redirectAttrs,
                                   HttpServletRequest request) {
 

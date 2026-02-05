@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Preguntas frecuentes – TurnoFácil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/public-pages.css}">
+</head>
+<body style="background: var(--tf-bg-primary); color: var(--tf-text-primary);">
+
+<div th:replace="~{fragments/navbar :: public-navbar}"></div>
+
+<div class="container py-5" style="max-width: 800px;">
+    <h1 class="mb-2"><i class="bi bi-question-circle me-2"></i>Preguntas frecuentes</h1>
+    <p class="text-muted mb-5">Todo lo que necesitas saber sobre TurnoFacil</p>
+
+    <!-- Para negocios -->
+    <h3 class="mb-4" style="color: var(--tf-brand);">
+        <i class="bi bi-shop me-2"></i>Para negocios
+    </h3>
+
+    <div class="accordion mb-5" id="faqBusiness">
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#b1"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Como empiezo a usar TurnoFacil?
+                </button>
+            </h2>
+            <div id="b1" class="accordion-collapse collapse" data-bs-parent="#faqBusiness">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    Registrate con tu email y contraseña. Automaticamente se creara tu negocio con una configuracion
+                    por defecto que puedes personalizar desde el panel de administracion: nombre, horarios, servicios,
+                    colores de tu pagina publica y mas.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#b2"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Cuanto cuesta?
+                </button>
+            </h2>
+            <div id="b2" class="accordion-collapse collapse" data-bs-parent="#faqBusiness">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    TurnoFacil tiene un plan gratuito con hasta 30 citas por mes y 3 servicios. Si necesitas mas,
+                    puedes actualizar al plan Pro o Business desde la seccion de facturacion en tu panel.
+                    Al registrarte obtienes 14 dias de prueba gratuita con todas las funcionalidades Pro.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#b3"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Como comparto mi pagina de reservas con mis clientes?
+                </button>
+            </h2>
+            <div id="b3" class="accordion-collapse collapse" data-bs-parent="#faqBusiness">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    En la seccion de Configuracion encontraras tus URLs publicas: una para tu pagina de presentacion
+                    (landing) y otra directa para reservas. Puedes compartir cualquiera de los dos enlaces en tus
+                    redes sociales, WhatsApp, tarjetas de visita, etc.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#b4"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Puedo personalizar los colores de mi pagina?
+                </button>
+            </h2>
+            <div id="b4" class="accordion-collapse collapse" data-bs-parent="#faqBusiness">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    Si, desde Configuracion > Perfil publico puedes elegir el color principal, color de fondo
+                    y color de texto de tu landing page para que coincida con la identidad visual de tu negocio.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#b5"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Recibo notificaciones cuando alguien reserva?
+                </button>
+            </h2>
+            <div id="b5" class="accordion-collapse collapse" data-bs-parent="#faqBusiness">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    Si, recibiras una notificacion en tu panel de administracion y, si lo activas en la configuracion,
+                    tambien un email cada vez que un cliente haga una reserva.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Para clientes -->
+    <h3 class="mb-4" style="color: var(--tf-brand);">
+        <i class="bi bi-people me-2"></i>Para clientes
+    </h3>
+
+    <div class="accordion mb-5" id="faqClients">
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c1"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Como reservo una cita?
+                </button>
+            </h2>
+            <div id="c1" class="accordion-collapse collapse" data-bs-parent="#faqClients">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    Accede al enlace de reservas que te proporciono el negocio, elige una fecha y hora disponible,
+                    completa tus datos y confirma. Recibiras un email de confirmacion con los detalles de tu turno.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c2"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Puedo cancelar o reagendar mi turno?
+                </button>
+            </h2>
+            <div id="c2" class="accordion-collapse collapse" data-bs-parent="#faqClients">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    Si. En el email de confirmacion encontraras un enlace para gestionar tu turno.
+                    Desde ahi puedes cancelarlo o reagendarlo a otra fecha y hora disponible.
+                    Ten en cuenta que la cancelacion no se puede deshacer.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c3"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Necesito crear una cuenta para reservar?
+                </button>
+            </h2>
+            <div id="c3" class="accordion-collapse collapse" data-bs-parent="#faqClients">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    No. Solo necesitas proporcionar tu nombre, telefono y opcionalmente tu email.
+                    No hace falta registrarse ni crear ninguna cuenta.
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-item" style="background: var(--tf-bg-secondary); border-color: var(--tf-border-light);">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#c4"
+                        style="background: var(--tf-bg-secondary); color: var(--tf-text-primary);">
+                    ¿Recibire un recordatorio antes de mi cita?
+                </button>
+            </h2>
+            <div id="c4" class="accordion-collapse collapse" data-bs-parent="#faqClients">
+                <div class="accordion-body" style="color: var(--tf-text-secondary);">
+                    Si el negocio tiene activados los recordatorios y proporcionaste tu email al reservar,
+                    recibiras un recordatorio 24 horas antes de tu turno.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center py-4">
+        <p class="text-muted mb-3">¿No encontraste lo que buscabas?</p>
+        <a href="mailto:soporte@turnofacil.com" class="btn btn-outline-light">
+            <i class="bi bi-envelope me-2"></i>Contactar soporte
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

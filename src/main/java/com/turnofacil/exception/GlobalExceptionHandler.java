@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -28,17 +29,17 @@ public class GlobalExceptionHandler {
     // ==================== API ERRORS (JSON) ====================
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> handleResourceNotFound(
+    public Object handleResourceNotFound(
             ResourceNotFoundException ex, HttpServletRequest request) {
 
         if (isApiRequest(request)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI()));
         }
-        // Para peticiones web, devolver página de error
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI()));
+        ModelAndView mav = new ModelAndView("error/404");
+        mav.addObject("message", ex.getMessage());
+        mav.setStatus(HttpStatus.NOT_FOUND);
+        return mav;
     }
 
     @ExceptionHandler(com.turnofacil.exception.AccessDeniedException.class)
@@ -118,6 +119,26 @@ public class GlobalExceptionHandler {
                 .body(buildErrorResponse(HttpStatus.FORBIDDEN, "Acceso denegado", request.getRequestURI()));
     }
 
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Object handleNoResourceFound(
+            NoResourceFoundException ex, HttpServletRequest request) {
+
+        // No loguear favicon.ico ni otros recursos estáticos comunes
+        String path = request.getRequestURI();
+        if (!path.endsWith("favicon.ico")) {
+            log.warn("Recurso no encontrado: {}", path);
+        }
+
+        if (isApiRequest(request)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(buildErrorResponse(HttpStatus.NOT_FOUND, "Recurso no encontrado", path));
+        }
+        ModelAndView mav = new ModelAndView("error/404");
+        mav.addObject("message", "Recurso no encontrado");
+        mav.setStatus(HttpStatus.NOT_FOUND);
+        return mav;
+    }
+
     // ==================== GENERIC ERROR HANDLER ====================
 
     @ExceptionHandler(Exception.class)
@@ -150,6 +171,18 @@ public class GlobalExceptionHandler {
         response.put("message", message);
         response.put("path", path);
         return response;
+    }
+
+    @ExceptionHandler(PlanLimitExceededException.class)
+    public Object handlePlanLimitExceeded(
+            PlanLimitExceededException ex, HttpServletRequest request) {
+        if (isApiRequest(request)) {
+            return ResponseEntity.status(HttpStatus.PAYMENT_REQUIRED)
+                    .body(buildErrorResponse(HttpStatus.PAYMENT_REQUIRED, ex.getMessage(), request.getRequestURI()));
+        }
+        ModelAndView mav = new ModelAndView("error/403");
+        mav.addObject("message", ex.getMessage());
+        return mav;
     }
 
     private boolean isApiRequest(HttpServletRequest request) {

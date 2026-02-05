@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <th:block th:replace="~{fragments/head :: favicons}" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${config.businessName}">TurnoFacil</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" th:content="${config.businessDescription ?: (config.businessName + ' - Reserva tu cita online de forma rapida y sencilla')}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" th:href="@{|/public/${config.slug}|}">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" th:content="${config.businessName}">
+    <meta property="og:description" th:content="${config.businessDescription ?: (config.businessName + ' - Reserva tu cita online')}">
+    <meta property="og:url" th:content="@{|/public/${config.slug}|}">
+    <meta property="og:image" th:if="${config.logoUrl}" th:content="${config.logoUrl}">
+    <meta property="og:locale" content="es_ES">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" th:content="${config.businessName}">
+    <meta name="twitter:description" th:content="${config.businessDescription ?: (config.businessName + ' - Reserva tu cita online')}">
+    <meta name="twitter:image" th:if="${config.logoUrl}" th:content="${config.logoUrl}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/public-pages.css}">
+</head>
+<body class="public-page landing-page"
+      th:style="'--landing-primary:' + (${config.primaryColor} ?: '#c9a227') + ';--landing-bg:' + (${config.backgroundColor} ?: '#1a1a2e') + ';--landing-text:' + (${config.textColor} ?: '#e0e0e0') + ';'">
+<style>
+    .landing-page { background: var(--landing-bg) !important; color: var(--landing-text) !important; }
+    .landing-hero-content h1 { color: var(--landing-primary) !important; }
+    .landing-logo-initials { background: var(--landing-primary) !important; }
+    .landing-cta-btn, .service-book-btn { background: var(--landing-primary) !important; color: #000 !important; }
+    .landing-cta-btn:hover, .service-book-btn:hover { filter: brightness(1.1); }
+    .social-icon:hover { color: var(--landing-primary) !important; }
+    .landing-section-title::after { background: var(--landing-primary) !important; }
+</style>
+
+<!-- ==================== HERO ==================== -->
+<section class="landing-hero">
+    <div class="landing-hero-bg"></div>
+    <div class="landing-hero-content">
+        <div class="landing-logo" th:if="${config.logoUrl != null}">
+            <img th:src="${config.logoUrl}" th:alt="${config.businessName}"
+                 th:data-initials="${#strings.substring(config.businessName, 0, 2).toUpperCase()}"
+                 onerror="this.style.display='none'; var p=this.parentElement; p.classList.add('landing-logo-initials'); p.innerHTML='<span>'+this.dataset.initials+'</span>';">
+        </div>
+        <div class="landing-logo landing-logo-initials" th:unless="${config.logoUrl != null}">
+            <span th:text="${#strings.substring(config.businessName, 0, 2).toUpperCase()}">NE</span>
+        </div>
+        <h1 th:text="${config.businessName}">Mi Negocio</h1>
+        <p class="landing-hero-desc" th:if="${config.businessDescription}"
+           th:text="${config.businessDescription}">Descripcion del negocio</p>
+
+        <!-- Redes sociales en hero -->
+        <div class="landing-hero-social"
+             th:if="${config.instagramUrl != null || config.facebookUrl != null || config.whatsappNumber != null || config.websiteUrl != null}">
+            <a th:if="${config.instagramUrl}" th:href="${config.instagramUrl}" target="_blank" rel="noopener"
+               class="social-icon" title="Instagram">
+                <i class="bi bi-instagram"></i>
+            </a>
+            <a th:if="${config.facebookUrl}" th:href="${config.facebookUrl}" target="_blank" rel="noopener"
+               class="social-icon" title="Facebook">
+                <i class="bi bi-facebook"></i>
+            </a>
+            <a th:if="${config.whatsappNumber}" th:href="'https://wa.me/' + ${config.whatsappNumber.replaceAll('[^0-9+]', '')}" target="_blank" rel="noopener"
+               class="social-icon" title="WhatsApp">
+                <i class="bi bi-whatsapp"></i>
+            </a>
+            <a th:if="${config.websiteUrl}" th:href="${config.websiteUrl}" target="_blank" rel="noopener"
+               class="social-icon" title="Sitio web">
+                <i class="bi bi-globe"></i>
+            </a>
+        </div>
+
+        <a th:href="${bookingUrl}" class="landing-cta-btn">
+            <i class="bi bi-calendar-check me-2"></i>Reservar cita
+        </a>
+    </div>
+</section>
+
+<!-- ==================== SERVICIOS ==================== -->
+<section class="landing-section" th:if="${!services.isEmpty()}">
+    <div class="landing-container">
+        <div class="landing-section-header">
+            <h2><i class="bi bi-grid-3x3-gap me-2"></i>Nuestros servicios</h2>
+        </div>
+        <div class="landing-services-grid">
+            <div th:each="service : ${services}" class="landing-service-card">
+                <div class="landing-service-icon" th:style="'background-color: ' + ${service.color} + '15; color: ' + ${service.color}">
+                    <i th:class="${service.icon}"></i>
+                </div>
+                <h3 th:text="${service.name}">Servicio</h3>
+                <p th:if="${service.description}" th:text="${service.description}" class="landing-service-desc">Descripcion</p>
+                <div class="landing-service-meta">
+                    <span class="landing-service-duration">
+                        <i class="bi bi-clock me-1"></i>
+                        <span th:text="${service.durationMinutes}">30</span> min
+                    </span>
+                    <span th:if="${service.price}" class="landing-service-price"
+                          th:text="${#numbers.formatDecimal(service.price, 1, 2) + ' EUR'}">25.00 EUR</span>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a th:href="${bookingUrl}" class="landing-cta-btn landing-cta-btn-outline">
+                <i class="bi bi-calendar-check me-2"></i>Reservar ahora
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== GALERIA ==================== -->
+<section class="landing-section landing-section-alt" th:if="${!portfolioImages.isEmpty()}">
+    <div class="landing-container">
+        <div class="landing-section-header">
+            <h2><i class="bi bi-images me-2"></i>Nuestro trabajo</h2>
+        </div>
+        <div class="landing-gallery-grid">
+            <div th:each="image : ${portfolioImages}" class="landing-gallery-item">
+                <img th:src="${image.imageUrl}" th:alt="${image.caption ?: config.businessName}" loading="lazy"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="landing-gallery-fallback" style="display:none; align-items:center; justify-content:center; background:#2a2a2a; color:#888; font-size:0.9rem; min-height:200px; border-radius:12px; gap:0.5rem;">
+                    <i class="bi bi-image" style="font-size:1.5rem"></i> Imagen no disponible
+                </div>
+                <div class="landing-gallery-caption" th:if="${image.caption}">
+                    <span th:text="${image.caption}">Caption</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== HORARIOS ==================== -->
+<section class="landing-section">
+    <div class="landing-container">
+        <div class="landing-section-header">
+            <h2><i class="bi bi-clock me-2"></i>Horario de atencion</h2>
+        </div>
+        <div class="landing-schedule-card">
+            <div class="landing-schedule-row">
+                <span class="landing-schedule-label">
+                    <i class="bi bi-calendar-week me-2"></i>Dias
+                </span>
+                <span class="landing-schedule-value" th:text="${workingDaysDisplay}">Lunes a Viernes</span>
+            </div>
+            <div class="landing-schedule-row">
+                <span class="landing-schedule-label">
+                    <i class="bi bi-sunrise me-2"></i>Apertura
+                </span>
+                <span class="landing-schedule-value" th:text="${config.openingTime}">09:00</span>
+            </div>
+            <div class="landing-schedule-row">
+                <span class="landing-schedule-label">
+                    <i class="bi bi-sunset me-2"></i>Cierre
+                </span>
+                <span class="landing-schedule-value" th:text="${config.closingTime}">20:00</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== UBICACION ==================== -->
+<section class="landing-section landing-section-alt"
+         th:if="${config.address != null || config.googleMapsEmbedUrl != null}">
+    <div class="landing-container">
+        <div class="landing-section-header">
+            <h2><i class="bi bi-geo-alt me-2"></i>Ubicacion</h2>
+        </div>
+        <div class="landing-location-card">
+            <div th:if="${config.address}" class="landing-address">
+                <p class="mb-1" th:text="${config.address}">Direccion</p>
+                <p class="mb-0 text-muted">
+                    <span th:if="${config.city}" th:text="${config.city}">Ciudad</span>
+                    <span th:if="${config.city != null && config.province != null}">, </span>
+                    <span th:if="${config.province}" th:text="${config.province}">Provincia</span>
+                </p>
+            </div>
+            <div th:if="${config.googleMapsEmbedUrl}" class="landing-map">
+                <iframe th:src="${config.googleMapsEmbedUrl}"
+                        width="100%" height="300" style="border:0; border-radius: 12px;"
+                        allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="landing-footer">
+    <div class="landing-container">
+        <a th:href="${bookingUrl}" class="landing-cta-btn">
+            <i class="bi bi-calendar-check me-2"></i>Reservar cita
+        </a>
+
+        <div class="landing-footer-social"
+             th:if="${config.instagramUrl != null || config.facebookUrl != null || config.whatsappNumber != null || config.websiteUrl != null}">
+            <a th:if="${config.instagramUrl}" th:href="${config.instagramUrl}" target="_blank" rel="noopener" title="Instagram">
+                <i class="bi bi-instagram"></i>
+            </a>
+            <a th:if="${config.facebookUrl}" th:href="${config.facebookUrl}" target="_blank" rel="noopener" title="Facebook">
+                <i class="bi bi-facebook"></i>
+            </a>
+            <a th:if="${config.whatsappNumber}" th:href="'https://wa.me/' + ${config.whatsappNumber.replaceAll('[^0-9+]', '')}" target="_blank" rel="noopener" title="WhatsApp">
+                <i class="bi bi-whatsapp"></i>
+            </a>
+            <a th:if="${config.websiteUrl}" th:href="${config.websiteUrl}" target="_blank" rel="noopener" title="Sitio web">
+                <i class="bi bi-globe"></i>
+            </a>
+        </div>
+
+        <p class="landing-powered">
+            Creado con <a href="/" style="color: var(--tf-brand);">TurnoFacil</a>
+        </p>
+    </div>
+</footer>
+
+</body>
+</html>

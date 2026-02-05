@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dominios Personalizados - TurnoFácil</title>
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="admin-container">
+        <div class="page-header">
+            <h1>Dominios Personalizados</h1>
+            <p class="text-muted">Configura tu propio dominio para tu página de reservas</p>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Agregar nuevo dominio -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Agregar Dominio</h3>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/domains/add}" method="post" class="form-inline">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <div class="form-group">
+                        <label for="domain">Dominio:</label>
+                        <input type="text" id="domain" name="domain" class="form-control"
+                               placeholder="reservas.tunegocio.com" required
+                               pattern="^[a-zA-Z0-9][a-zA-Z0-9-_.]+\.[a-zA-Z]{2,}$">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                </form>
+                <p class="form-help mt-2">
+                    Ingresa el dominio o subdominio que deseas usar. Ejemplo: <code>reservas.tunegocio.com</code>
+                </p>
+            </div>
+        </div>
+
+        <!-- Lista de dominios -->
+        <div class="card">
+            <div class="card-header">
+                <h3>Mis Dominios</h3>
+            </div>
+            <div class="card-body">
+                <div th:if="${#lists.isEmpty(domains)}" class="empty-state">
+                    <p>No tienes dominios configurados.</p>
+                    <p class="text-muted">Agrega un dominio personalizado para que tus clientes accedan a tu página de reservas con tu propia URL.</p>
+                </div>
+
+                <table th:unless="${#lists.isEmpty(domains)}" class="table">
+                    <thead>
+                        <tr>
+                            <th>Dominio</th>
+                            <th>Estado</th>
+                            <th>SSL</th>
+                            <th>Verificado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="d : ${domains}">
+                            <td th:text="${d.domain}"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="'badge-' + ${d.status.badgeClass}"
+                                      th:text="${d.status.displayName}"></span>
+                            </td>
+                            <td>
+                                <span th:if="${d.sslEnabled}" class="text-success">Activo</span>
+                                <span th:unless="${d.sslEnabled}" class="text-muted">-</span>
+                            </td>
+                            <td th:text="${d.verifiedAt != null ? #temporals.format(d.verifiedAt, 'dd/MM/yyyy') : '-'}"></td>
+                            <td>
+                                <a th:href="@{/admin/domains/{id}(id=${d.id})}" class="btn btn-sm btn-secondary">Configurar</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

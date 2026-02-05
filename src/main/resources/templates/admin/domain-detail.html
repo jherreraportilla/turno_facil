@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurar Dominio - TurnoFácil</title>
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+    <style>
+        .dns-record {
+            background: #1a1a2e;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-family: monospace;
+        }
+        .dns-record .label {
+            color: #c9a227;
+            font-size: 0.85rem;
+            margin-bottom: 0.25rem;
+        }
+        .dns-record .value {
+            color: #e0e0e0;
+            word-break: break-all;
+        }
+        .copy-btn {
+            background: #3a3a5a;
+            border: none;
+            color: #e0e0e0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+        .copy-btn:hover {
+            background: #c9a227;
+            color: #1a1a2e;
+        }
+        .status-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .status-badge-large {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="admin-container">
+        <a th:href="@{/admin/domains}" class="back-link">← Volver a Dominios</a>
+
+        <div class="page-header">
+            <h1 th:text="${domain.domain}">dominio.com</h1>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Estado -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="status-section">
+                    <span>Estado:</span>
+                    <span class="status-badge-large"
+                          th:classappend="'badge-' + ${domain.status.badgeClass}"
+                          th:text="${domain.status.displayName}"></span>
+
+                    <form th:if="${domain.pendingVerification or domain.status.name() == 'VERIFICATION_FAILED'}"
+                          th:action="@{/admin/domains/{id}/verify(id=${domain.id})}" method="post" style="margin-left: auto;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button type="submit" class="btn btn-primary">Verificar Dominio</button>
+                    </form>
+                </div>
+
+                <div th:if="${domain.verificationError}" class="alert alert-warning">
+                    <strong>Último error:</strong> <span th:text="${domain.verificationError}"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instrucciones DNS -->
+        <div class="card mb-4" th:unless="${domain.active}">
+            <div class="card-header">
+                <h3>Configuración DNS</h3>
+            </div>
+            <div class="card-body">
+                <p>Para activar tu dominio, configura los siguientes registros DNS en tu proveedor:</p>
+
+                <h4 class="mt-4">1. Registro TXT (Verificación)</h4>
+                <p class="text-muted">Este registro verifica que eres el propietario del dominio.</p>
+                <div class="dns-record">
+                    <div class="label">Nombre / Host</div>
+                    <div class="value">
+                        <span th:text="${dnsInstructions.txtRecordName}"></span>
+                        <button class="copy-btn" onclick="copyToClipboard(this.previousElementSibling.textContent)">Copiar</button>
+                    </div>
+                </div>
+                <div class="dns-record">
+                    <div class="label">Tipo</div>
+                    <div class="value">TXT</div>
+                </div>
+                <div class="dns-record">
+                    <div class="label">Valor</div>
+                    <div class="value">
+                        <span th:text="${dnsInstructions.txtRecordValue}"></span>
+                        <button class="copy-btn" onclick="copyToClipboard(this.previousElementSibling.textContent)">Copiar</button>
+                    </div>
+                </div>
+
+                <h4 class="mt-4">2. Registro CNAME (Redirección)</h4>
+                <p class="text-muted">Este registro apunta tu dominio a nuestros servidores.</p>
+                <div class="dns-record">
+                    <div class="label">Nombre / Host</div>
+                    <div class="value">
+                        <span th:text="${dnsInstructions.cnameRecordName}"></span>
+                        <button class="copy-btn" onclick="copyToClipboard(this.previousElementSibling.textContent)">Copiar</button>
+                    </div>
+                </div>
+                <div class="dns-record">
+                    <div class="label">Tipo</div>
+                    <div class="value">CNAME</div>
+                </div>
+                <div class="dns-record">
+                    <div class="label">Valor / Apunta a</div>
+                    <div class="value">
+                        <span th:text="${dnsInstructions.cnameRecordTarget}"></span>
+                        <button class="copy-btn" onclick="copyToClipboard(this.previousElementSibling.textContent)">Copiar</button>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <strong>Nota:</strong> Los cambios de DNS pueden tardar hasta 24 horas en propagarse.
+                    Si acabas de configurarlos, espera unos minutos antes de verificar.
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del dominio activo -->
+        <div class="card mb-4" th:if="${domain.active}">
+            <div class="card-header">
+                <h3>Tu Dominio Está Activo</h3>
+            </div>
+            <div class="card-body">
+                <p>Los clientes pueden acceder a tu página de reservas en:</p>
+                <div class="dns-record">
+                    <div class="value" style="font-size: 1.2rem;">
+                        <a th:href="'https://' + ${domain.domain}" th:text="'https://' + ${domain.domain}"
+                           target="_blank" style="color: #c9a227;"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Eliminar dominio -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-danger">Zona de Peligro</h3>
+            </div>
+            <div class="card-body">
+                <p>Eliminar este dominio desactivará el acceso a tu página de reservas desde esta URL.</p>
+                <form th:action="@{/admin/domains/{id}/delete(id=${domain.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('¿Seguro que deseas eliminar este dominio?')">
+                        Eliminar Dominio
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copiado al portapapeles');
+            });
+        }
+    </script>
+</body>
+</html>

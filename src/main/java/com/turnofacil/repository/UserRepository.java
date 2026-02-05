@@ -2,9 +2,12 @@
 package com.turnofacil.repository;
 
 import com.turnofacil.model.User;
+import com.turnofacil.model.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -31,4 +34,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Opcional pero muy útil: búsqueda case-insensitive
     // -------------------------------------------------
     Optional<User> findByEmailIgnoreCase(String email);
+
+    // -------------------------------------------------
+    // Métodos para super-admin / métricas de plataforma
+    // -------------------------------------------------
+    List<User> findByRole(Role role);
+    long countByRole(Role role);
+    long countByRoleAndLastLoginAfter(Role role, LocalDateTime after);
+    long countByRoleAndCreatedAtAfter(Role role, LocalDateTime after);
+    long countByRoleAndCreatedAtBetween(Role role, LocalDateTime start, LocalDateTime end);
 }
