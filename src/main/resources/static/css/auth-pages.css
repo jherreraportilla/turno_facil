@@ -4,6 +4,12 @@
    Versión: 2.0 - Tema Elegante Dorado
    ======================================== */
 
+.auth-page *,
+.auth-page *::before,
+.auth-page *::after {
+  box-sizing: border-box;
+}
+
 /* ========================================
    1. DECORACIÓN DE FONDO
    ======================================== */
@@ -565,4 +571,54 @@
 
 .password-checklist li.invalid {
   color: var(--tf-text-tertiary);
+}
+
+/* ========================================
+   17. PASSWORD TOGGLE (OJO)
+   ======================================== */
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper .auth-form-control {
+  padding-right: 3rem;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--tf-text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: color var(--tf-transition-base);
+}
+
+.password-toggle:hover {
+  color: var(--tf-text-primary);
+}
+
+/* ========================================
+   18. PASSWORD MATCH INDICATOR
+   ======================================== */
+.password-match-msg {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: color var(--tf-transition-fast);
+}
+
+.password-match-msg.match {
+  color: var(--tf-success);
+}
+
+.password-match-msg.no-match {
+  color: var(--tf-danger, #c45c4a);
 }

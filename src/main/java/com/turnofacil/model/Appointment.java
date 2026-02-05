@@ -40,6 +40,12 @@ public class Appointment {
     @Column(name = "NOTES", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "INTERNAL_NOTES", columnDefinition = "TEXT")
+    private String internalNotes;
+
+    @Column(name = "CANCELLATION_TOKEN", length = 36, unique = true)
+    private String cancellationToken;
+
     @Column(name = "STATUS", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)
     private AppointmentStatus status = AppointmentStatus.PENDING;
@@ -54,6 +60,9 @@ public class Appointment {
 
     @Column(name = "REMINDER_SENT", nullable = false)
     private boolean reminderSent = false;
+
+    @Column(name = "WHATSAPP_REMINDER_SENT", nullable = false)
+    private boolean whatsappReminderSent = false;
 
     // ==================== SNAPSHOT DEL SERVICIO (INMUTABLE) ====================
     // Estos campos se llenan al crear la cita y NO deben modificarse después

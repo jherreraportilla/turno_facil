@@ -30,7 +30,9 @@ public class BlockedSlotService {
 
     @Transactional(readOnly = true)
     public List<BlockedSlot> getFutureBlockedSlots(Long businessId) {
-        return blockedSlotRepository.findByBusinessIdAndStartDateGreaterThanEqualOrderByStartDateAsc(
+        // Devuelve bloqueos que aun no han terminado (endDate >= hoy)
+        // Esto incluye bloqueos que empezaron antes pero siguen activos
+        return blockedSlotRepository.findByBusinessIdAndEndDateGreaterThanEqualOrderByStartDateAsc(
                 businessId, LocalDate.now());
     }
 

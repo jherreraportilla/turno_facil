@@ -2,6 +2,20 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
 
+  # Redis para cache y rate limiting distribuido
+  data:
+    redis:
+      enabled: ${REDIS_ENABLED:false}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/turnofacil_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USERNAME:}
@@ -9,6 +23,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: ${DDL_AUTO:validate}
     show-sql: ${SHOW_SQL:false}
@@ -16,6 +31,13 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 5
+    validate-on-migrate: true
 
   thymeleaf:
     cache: ${THYMELEAF_CACHE:true}
@@ -47,10 +69,39 @@ spring:
 # APP CONFIG
 # ========================================
 app:
+  base-url: ${APP_BASE_URL:http://localhost:8080}
   email:
     enabled: ${EMAIL_ENABLED:false}
   # NUNCA mostrar detalles de errores en produccion
   show-error-details: ${SHOW_ERROR_DETAILS:false}
+  # Cache configuration
+  cache:
+    key-prefix: ${CACHE_KEY_PREFIX:turnofacil:}
+  # Custom domain configuration
+  custom-domain:
+    verification-record: ${CUSTOM_DOMAIN_VERIFICATION_RECORD:_turnofacil-verify}
+    cname-target: ${CUSTOM_DOMAIN_CNAME_TARGET:custom.turnofacil.com}
+  # DNS verification (false = real DNS lookup, true = mock for development)
+  dns:
+    mock-enabled: ${DNS_MOCK_ENABLED:false}
+
+# ========================================
+# WHATSAPP - Notificaciones por WhatsApp
+# ========================================
+whatsapp:
+  enabled: ${WHATSAPP_ENABLED:false}
+  phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+  access-token: ${WHATSAPP_ACCESS_TOKEN:}
+
+# ========================================
+# STRIPE - Pagos y suscripciones
+# ========================================
+stripe:
+  api-key: ${STRIPE_API_KEY:}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  prices:
+    pro: ${STRIPE_PRICE_PRO:}
+    business: ${STRIPE_PRICE_BUSINESS:}
 
 # ========================================
 # LOGGING - Por defecto seguro para produccion
@@ -67,6 +118,24 @@ logging:
 # ========================================
 # SERVER - Configuracion segura por defecto
 # ========================================
+# ========================================
+# ACTUATOR - Health & monitoring
+# ========================================
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: true
+  server:
+    port: ${MANAGEMENT_PORT:${server.port:8080}}
+
 server:
   error:
     include-message: never

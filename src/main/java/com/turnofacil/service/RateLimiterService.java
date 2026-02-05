@@ -1,29 +1,28 @@
 package com.turnofacil.service;
 
 import com.turnofacil.exception.RateLimitExceededException;
+import com.turnofacil.service.cache.CacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.Duration;
 
 /**
- * Servicio simple de rate limiting basado en memoria.
- * Para producción con múltiples instancias, usar Redis.
+ * Servicio de rate limiting usando el cache service.
+ * Funciona tanto con Redis (distribuido) como con InMemory (single instance).
  */
 @Service
 public class RateLimiterService {
 
     private static final Logger log = LoggerFactory.getLogger(RateLimiterService.class);
 
-    // Almacena: key -> [contador, timestamp de inicio de ventana]
-    private final Map<String, long[]> requestCounts = new ConcurrentHashMap<>();
+    private final CacheService cacheService;
 
-    // Limpieza periódica de entradas antiguas (cada 5 minutos)
-    private Instant lastCleanup = Instant.now();
-    private static final long CLEANUP_INTERVAL_SECONDS = 300;
+    public RateLimiterService(CacheService cacheService) {
+        this.cacheService = cacheService;
+        log.info("RateLimiterService inicializado con provider: {}", cacheService.getProviderName());
+    }
 
     /**
      * Verifica si una acción está permitida bajo el rate limit.
@@ -34,21 +33,23 @@ public class RateLimiterService {
      * @return true si está permitido, false si excede el límite
      */
     public boolean isAllowed(String key, int maxRequests, int windowSeconds) {
-        cleanupIfNeeded();
+        String rateLimitKey = "ratelimit:" + key;
 
-        long now = Instant.now().getEpochSecond();
-        long[] data = requestCounts.compute(key, (k, v) -> {
-            if (v == null || (now - v[1]) >= windowSeconds) {
-                // Nueva ventana
-                return new long[]{1, now};
-            } else {
-                // Incrementar contador en ventana existente
-                v[0]++;
-                return v;
+        try {
+            long currentCount = cacheService.increment(rateLimitKey, Duration.ofSeconds(windowSeconds));
+
+            if (currentCount > maxRequests) {
+                log.warn("Rate limit excedido para key: {} (count: {}, max: {})",
+                        key, currentCount, maxRequests);
+                return false;
             }
-        });
 
-        return data[0] <= maxRequests;
+            return true;
+        } catch (Exception e) {
+            log.error("Error en rate limiting, permitiendo por defecto: {}", e.getMessage());
+            // En caso de error, permitimos la operación para no bloquear usuarios
+            return true;
+        }
     }
 
     /**
@@ -93,29 +94,60 @@ public class RateLimiterService {
     }
 
     /**
-     * Limpia entradas antiguas para evitar memory leaks
+     * Rate limit para recuperación de password: 3 intentos por hora por email
      */
-    private void cleanupIfNeeded() {
-        Instant now = Instant.now();
-        if (now.getEpochSecond() - lastCleanup.getEpochSecond() > CLEANUP_INTERVAL_SECONDS) {
-            lastCleanup = now;
-            long threshold = now.getEpochSecond() - 3600; // Eliminar entradas de más de 1 hora
-            requestCounts.entrySet().removeIf(entry -> entry.getValue()[1] < threshold);
-            log.debug("Rate limiter cleanup: {} entradas restantes", requestCounts.size());
-        }
+    public void checkPasswordResetLimit(String email) {
+        String key = "pwreset:" + email.toLowerCase();
+        checkRateLimit(key, 3, 3600); // 3 por hora
+    }
+
+    /**
+     * Rate limit para envío de emails: 10 por minuto por negocio
+     */
+    public void checkEmailLimit(Long businessId) {
+        String key = "email:" + businessId;
+        checkRateLimit(key, 10, 60);
+    }
+
+    /**
+     * Obtiene el conteo actual de requests para una key.
+     */
+    public long getCurrentCount(String key) {
+        return cacheService.getCounter("ratelimit:" + key);
+    }
+
+    /**
+     * Obtiene información sobre el rate limit actual.
+     */
+    public RateLimitInfo getRateLimitInfo(String key, int maxRequests) {
+        long currentCount = getCurrentCount(key);
+        long remaining = Math.max(0, maxRequests - currentCount);
+        boolean exceeded = currentCount > maxRequests;
+
+        return new RateLimitInfo(currentCount, remaining, maxRequests, exceeded);
     }
 
     /**
      * Resetea el contador para una key específica (útil para tests)
      */
     public void reset(String key) {
-        requestCounts.remove(key);
+        cacheService.delete("ratelimit:" + key);
     }
 
     /**
      * Resetea todos los contadores (útil para tests)
      */
     public void resetAll() {
-        requestCounts.clear();
+        cacheService.clear();
     }
+
+    /**
+     * Información del estado de rate limit.
+     */
+    public record RateLimitInfo(
+            long currentCount,
+            long remaining,
+            int limit,
+            boolean exceeded
+    ) {}
 }

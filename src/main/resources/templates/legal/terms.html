@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Terminos de Servicio – TurnoFacil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/turnofacil-theme.css}">
+    <link rel="stylesheet" th:href="@{/css/public-pages.css}">
+</head>
+<body style="background: var(--tf-bg-primary); color: var(--tf-text-primary);">
+
+<div th:replace="~{fragments/navbar :: public-navbar}"></div>
+
+<div class="container py-5" style="max-width: 800px;">
+    <h1 class="mb-4">Terminos y Condiciones de Uso</h1>
+    <p class="text-muted mb-4">Última actualización: febrero 2026</p>
+
+    <h2>1. Objeto</h2>
+    <p>Los presentes Términos y Condiciones regulan el acceso y uso de la plataforma TurnoFácil
+    (en adelante, "el Servicio"), una aplicación de gestión de citas y turnos para profesionales y pequeños negocios.</p>
+
+    <h2>2. Registro y cuenta</h2>
+    <p>Para utilizar el Servicio es necesario crear una cuenta proporcionando datos verídicos y actualizados.
+    El usuario es responsable de mantener la confidencialidad de sus credenciales de acceso.</p>
+
+    <h2>3. Uso aceptable</h2>
+    <p>El usuario se compromete a utilizar el Servicio de forma lícita y conforme a estos Términos.
+    Queda prohibido cualquier uso que pueda dañar, sobrecargar o deteriorar el Servicio.</p>
+
+    <h2>4. Protección de datos</h2>
+    <p>El tratamiento de datos personales se rige por nuestra
+    <a th:href="@{/legal/privacy}">Política de Privacidad</a>, conforme al Reglamento General de Protección de Datos (RGPD).</p>
+
+    <h2>5. Planes y facturación</h2>
+    <p>El Servicio ofrece un plan gratuito con funcionalidades limitadas y planes de pago con funcionalidades adicionales.
+    Los precios y condiciones de cada plan se detallan en la <a th:href="@{/pricing}">página de precios</a>.
+    Los pagos se procesan a través de Stripe. Las suscripciones se renuevan automáticamente salvo cancelación previa.</p>
+
+    <h2>6. Cancelación y reembolsos</h2>
+    <p>El usuario puede cancelar su suscripción en cualquier momento desde el panel de administración.
+    La cancelación será efectiva al final del período de facturación vigente.
+    No se realizan reembolsos por períodos parciales.</p>
+
+    <h2>7. Disponibilidad del Servicio</h2>
+    <p>TurnoFácil se esfuerza por mantener el Servicio disponible de forma continuada,
+    pero no garantiza su funcionamiento ininterrumpido. Se podrán realizar mantenimientos programados
+    con notificación previa cuando sea posible.</p>
+
+    <h2>8. Propiedad intelectual</h2>
+    <p>Todos los derechos de propiedad intelectual del Servicio pertenecen a TurnoFácil.
+    Los datos introducidos por el usuario son propiedad del usuario.</p>
+
+    <h2>9. Limitación de responsabilidad</h2>
+    <p>TurnoFácil no será responsable de daños indirectos, pérdida de beneficios o datos derivados del uso del Servicio,
+    salvo en los casos previstos por la legislación aplicable.</p>
+
+    <h2>10. Modificaciones</h2>
+    <p>TurnoFácil se reserva el derecho de modificar estos Términos. Los cambios se notificarán
+    al usuario con antelación razonable. El uso continuado del Servicio tras la notificación
+    implica la aceptación de los nuevos Términos.</p>
+
+    <h2>11. Legislación aplicable</h2>
+    <p>Estos Términos se rigen por la legislación española. Para cualquier controversia,
+    las partes se someten a los juzgados y tribunales del domicilio del usuario.</p>
+
+    <h2>12. Contacto</h2>
+    <p>Para cualquier consulta relacionada con estos Términos, puede contactar a
+    <strong>soporte@turnofacil.com</strong>.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

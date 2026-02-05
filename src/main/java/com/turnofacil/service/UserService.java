@@ -21,15 +21,21 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
     private final BusinessConfigRepository businessConfigRepository;
     private final ServiceService serviceService;
+    private final SubscriptionService subscriptionService;
+    private final EmailService emailService;
 
     public UserService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        BusinessConfigRepository businessConfigRepository,
-                       @Lazy ServiceService serviceService) {
+                       @Lazy ServiceService serviceService,
+                       @Lazy SubscriptionService subscriptionService,
+                       @Lazy EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.businessConfigRepository = businessConfigRepository;
         this.serviceService = serviceService;
+        this.subscriptionService = subscriptionService;
+        this.emailService = emailService;
     }
 
     // Registro de nuevo negocio (admin)
@@ -51,6 +57,12 @@ public class UserService implements UserDetailsService {
 
         // CREAR SERVICIOS POR DEFECTO
         serviceService.createDefaultServices(savedUser);
+
+        // CREAR SUSCRIPCIÓN CON TRIAL DE 14 DÍAS
+        subscriptionService.createTrialSubscription(savedUser);
+
+        // EMAIL DE BIENVENIDA (async)
+        emailService.sendWelcomeEmail(savedUser.getEmail(), config.getBusinessName());
 
         return savedUser;
     }

@@ -34,16 +34,19 @@ public class BusinessConfigService {
         return configRepo.save(config);
     }
 
+    @Transactional(readOnly = true)
     public BusinessConfig getByUserId(Long userId) {
         return configRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Configuración no encontrada"));
     }
 
+    @Transactional(readOnly = true)
     public BusinessConfig getByUsername(String username) {
         return configRepo.findByUserUsername(username)
                 .orElseThrow(() -> new RuntimeException("Negocio no encontrado"));
     }
 
+    @Transactional(readOnly = true)
     public Optional<BusinessConfig> findBySlug(String slug) {
         return configRepo.findBySlug(slug);
     }
@@ -61,6 +64,24 @@ public class BusinessConfigService {
         existing.setSlug(generateUniqueSlug(updatedConfig.getBusinessName(), existing.getId()));
         existing.setReceiveEmailNotifications(updatedConfig.isReceiveEmailNotifications());
         existing.setEnableReminders(updatedConfig.isEnableReminders());
+        existing.setReminderHoursBefore(updatedConfig.getReminderHoursBefore());
+        existing.setLogoUrl(updatedConfig.getLogoUrl());
+
+        // Landing page / Portfolio fields
+        existing.setBusinessDescription(updatedConfig.getBusinessDescription());
+        existing.setAddress(updatedConfig.getAddress());
+        existing.setCity(updatedConfig.getCity());
+        existing.setProvince(updatedConfig.getProvince());
+        existing.setInstagramUrl(updatedConfig.getInstagramUrl());
+        existing.setFacebookUrl(updatedConfig.getFacebookUrl());
+        existing.setWhatsappNumber(updatedConfig.getWhatsappNumber());
+        existing.setWebsiteUrl(updatedConfig.getWebsiteUrl());
+        existing.setGoogleMapsEmbedUrl(updatedConfig.getGoogleMapsEmbedUrl());
+
+        // Colores de personalización
+        existing.setPrimaryColor(updatedConfig.getPrimaryColor());
+        existing.setBackgroundColor(updatedConfig.getBackgroundColor());
+        existing.setTextColor(updatedConfig.getTextColor());
 
         return configRepo.save(existing);
     }

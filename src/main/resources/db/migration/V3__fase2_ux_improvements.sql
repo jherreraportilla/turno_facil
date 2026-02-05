@@ -1,0 +1,9 @@
+-- Fase 2: Mejora UX
+-- Agregar notas internas y token de cancelación a appointments
+
+ALTER TABLE APPOINTMENTS ADD COLUMN INTERNAL_NOTES TEXT;
+ALTER TABLE APPOINTMENTS ADD COLUMN CANCELLATION_TOKEN VARCHAR(36) UNIQUE;
+
+CREATE INDEX idx_appointments_cancellation_token ON APPOINTMENTS(CANCELLATION_TOKEN);
+CREATE INDEX idx_appointments_client_phone ON APPOINTMENTS(CLIENT_PHONE);
+CREATE INDEX idx_appointments_client_email ON APPOINTMENTS(CLIENT_EMAIL);

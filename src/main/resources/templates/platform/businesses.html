@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negocios - TurnoFácil Platform</title>
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+    <style>
+        .platform-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .platform-header h1 {
+            color: #c9a227;
+            margin: 0;
+        }
+        .back-link {
+            color: #a0a0a0;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        .back-link:hover {
+            color: #c9a227;
+        }
+        .businesses-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #252540;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .businesses-table th,
+        .businesses-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #3a3a5a;
+        }
+        .businesses-table th {
+            background: #1a1a2e;
+            color: #c9a227;
+            font-weight: 600;
+        }
+        .businesses-table tr:hover {
+            background: #2d2d4a;
+        }
+        .status-enabled {
+            color: #28a745;
+        }
+        .status-disabled {
+            color: #dc3545;
+        }
+        .view-btn {
+            background: #c9a227;
+            color: #1a1a2e;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .view-btn:hover {
+            background: #b8912a;
+        }
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #3a3a5a;
+            border-radius: 8px;
+            background: #252540;
+            color: #e0e0e0;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #c9a227;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <a th:href="@{/platform/dashboard}" class="back-link">← Volver al Dashboard</a>
+
+        <div class="platform-header">
+            <h1>Negocios Registrados</h1>
+            <p th:text="${#lists.size(businesses)} + ' negocios en la plataforma'"></p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar por nombre o email..."
+                   onkeyup="filterTable()">
+        </div>
+
+        <table class="businesses-table" id="businessesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Registrado</th>
+                    <th>Último Login</th>
+                    <th>Citas</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="b : ${businesses}">
+                    <td th:text="${b.id}"></td>
+                    <td th:text="${b.name}"></td>
+                    <td th:text="${b.email}"></td>
+                    <td th:text="${b.createdAt != null ? #temporals.format(b.createdAt, 'dd/MM/yyyy') : '-'}"></td>
+                    <td th:text="${b.lastLogin != null ? #temporals.format(b.lastLogin, 'dd/MM/yyyy HH:mm') : 'Nunca'}"></td>
+                    <td th:text="${b.totalAppointments}"></td>
+                    <td>
+                        <span th:if="${b.enabled}" class="status-enabled">Activo</span>
+                        <span th:unless="${b.enabled}" class="status-disabled">Deshabilitado</span>
+                    </td>
+                    <td>
+                        <a th:href="@{/platform/businesses/{id}(id=${b.id})}" class="view-btn">Ver</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toLowerCase();
+            const table = document.getElementById('businessesTable');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let found = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(filter)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                rows[i].style.display = found ? '' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

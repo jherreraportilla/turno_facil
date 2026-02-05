@@ -55,4 +55,45 @@ public class BusinessConfig {
 
     @Column(name = "RECEIVE_EMAIL_NOTIFICATIONS", nullable = false)
     private boolean receiveEmailNotifications = true;
+
+    // Landing page / Portfolio fields
+    @Column(name = "BUSINESS_DESCRIPTION", columnDefinition = "TEXT")
+    private String businessDescription;
+
+    @Column(name = "ADDRESS")
+    private String address;
+
+    @Column(name = "CITY", length = 100)
+    private String city;
+
+    @Column(name = "PROVINCE", length = 100)
+    private String province;
+
+    @Column(name = "INSTAGRAM_URL")
+    private String instagramUrl;
+
+    @Column(name = "FACEBOOK_URL")
+    private String facebookUrl;
+
+    @Column(name = "WHATSAPP_NUMBER", length = 20)
+    private String whatsappNumber;
+
+    @Column(name = "ENABLE_WHATSAPP_REMINDERS", nullable = false)
+    private boolean enableWhatsappReminders = false;
+
+    @Column(name = "WEBSITE_URL")
+    private String websiteUrl;
+
+    @Column(name = "GOOGLE_MAPS_EMBED_URL", length = 1000)
+    private String googleMapsEmbedUrl;
+
+    // Personalización visual
+    @Column(name = "PRIMARY_COLOR", length = 7)
+    private String primaryColor = "#c9a227";
+
+    @Column(name = "BACKGROUND_COLOR", length = 7)
+    private String backgroundColor = "#1a1a2e";
+
+    @Column(name = "TEXT_COLOR", length = 7)
+    private String textColor = "#e0e0e0";
 }

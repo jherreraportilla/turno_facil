@@ -7,7 +7,7 @@ public final class Constants {
     // ------ AUTH ------
     public static final String AUTH_LOGIN = "auth/login";
     public static final String AUTH_REGISTER = "auth/register";
-    public static final String REDIRECT_AUTH_LOGIN = "redirect:/login?registered";
+    public static final String REDIRECT_AUTH_LOGIN = "redirect:/auth/login?registered";
 
     // ------ ADMIN VIEWS ------
     public static final String ADMIN_DASHBOARD = "admin/dashboard";

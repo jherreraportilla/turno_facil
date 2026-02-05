@@ -20,7 +20,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByBusinessIdAndReadFalseOrderByCreatedAtDesc(Long businessId);
 
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Notification n SET n.read = true, n.readAt = CURRENT_TIMESTAMP WHERE n.business.id = :businessId AND n.read = false")
     int markAllAsReadByBusinessId(@Param("businessId") Long businessId);
 }

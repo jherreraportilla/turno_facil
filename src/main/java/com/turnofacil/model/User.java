@@ -1,5 +1,6 @@
 package com.turnofacil.model;
 
+import com.turnofacil.model.enums.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NonNull;
@@ -7,6 +8,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -35,10 +38,35 @@ public class User implements UserDetails {
     @Column(name = "ENABLED", nullable = false)
     private boolean enabled = true;
 
+    @Column(name = "ROLE", nullable = false, length = 20)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.ADMIN;
+
+    @Column(name = "CREATED_AT")
+    private LocalDateTime createdAt;
+
+    @Column(name = "LAST_LOGIN")
+    private LocalDateTime lastLogin;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
     @Override
     @NonNull
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority(role.getAuthority()));
+
+        // Super admin también tiene permisos de admin
+        if (role.isSuperAdmin()) {
+            authorities.add(new SimpleGrantedAuthority(Role.ADMIN.getAuthority()));
+        }
+
+        return authorities;
     }
 
     @Override
@@ -46,8 +74,6 @@ public class User implements UserDetails {
     public String getUsername() {
         return email;
     }
-
-
 
     @Override
     public boolean isAccountNonExpired() { return true; }
@@ -60,4 +86,18 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() { return enabled; }
+
+    /**
+     * Verifica si el usuario es super admin.
+     */
+    public boolean isSuperAdmin() {
+        return role != null && role.isSuperAdmin();
+    }
+
+    /**
+     * Registra el último login.
+     */
+    public void recordLogin() {
+        this.lastLogin = LocalDateTime.now();
+    }
 }

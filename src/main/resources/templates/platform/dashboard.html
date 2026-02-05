@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Plataforma - TurnoFácil</title>
+    <link rel="stylesheet" th:href="@{/css/admin-pages.css}">
+    <style>
+        .platform-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d1b4e 100%);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .platform-header h1 {
+            color: #c9a227;
+            margin: 0;
+        }
+        .platform-header p {
+            color: #a0a0a0;
+            margin: 0.5rem 0 0 0;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background: #252540;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #c9a227;
+        }
+        .metric-label {
+            color: #a0a0a0;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .section-title {
+            color: #c9a227;
+            font-size: 1.3rem;
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #3a3a5a;
+        }
+        .mrr-highlight {
+            background: linear-gradient(135deg, #2d1b4e 0%, #1a1a2e 100%);
+            border: 2px solid #c9a227;
+        }
+        .mrr-highlight .metric-value {
+            font-size: 3rem;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .status-online {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+        }
+        .status-offline {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+        .quick-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .quick-link {
+            background: #3a3a5a;
+            color: #e0e0e0;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .quick-link:hover {
+            background: #c9a227;
+            color: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="platform-header">
+            <h1>Panel de Plataforma</h1>
+            <p>Vista general de TurnoFácil</p>
+            <div class="quick-links">
+                <a th:href="@{/platform/businesses}" class="quick-link">Ver Negocios</a>
+                <a th:href="@{/platform/metrics}" class="quick-link">Métricas Detalladas</a>
+                <a th:href="@{/platform/system}" class="quick-link">Estado del Sistema</a>
+            </div>
+        </div>
+
+        <!-- KPIs Principales -->
+        <div class="metrics-grid">
+            <div class="metric-card mrr-highlight">
+                <div class="metric-value" th:text="${#numbers.formatCurrency(metrics.subscriptions.mrr)}">$0.00</div>
+                <div class="metric-label">MRR (Ingresos Mensuales)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.totalBusinesses}">0</div>
+                <div class="metric-label">Negocios Registrados</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.activeBusinesses}">0</div>
+                <div class="metric-label">Activos (30 días)</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.totalAppointments}">0</div>
+                <div class="metric-label">Citas Totales</div>
+            </div>
+        </div>
+
+        <!-- Suscripciones -->
+        <h2 class="section-title">Suscripciones</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.subscriptions.active}">0</div>
+                <div class="metric-label">Activas</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.subscriptions.trial}">0</div>
+                <div class="metric-label">En Trial</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.subscriptions.freePlan}">0</div>
+                <div class="metric-label">Plan Free</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.subscriptions.proPlan}">0</div>
+                <div class="metric-label">Plan Pro</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.subscriptions.businessPlan}">0</div>
+                <div class="metric-label">Plan Business</div>
+            </div>
+        </div>
+
+        <!-- Crecimiento -->
+        <h2 class="section-title">Crecimiento</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.growth.newThisMonth}">0</div>
+                <div class="metric-label">Nuevos este mes</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${metrics.growth.newLastMonth}">0</div>
+                <div class="metric-label">Nuevos mes anterior</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" th:text="${#numbers.formatDecimal(metrics.growth.growthRatePercent, 1, 1) + '%'}">0%</div>
+                <div class="metric-label">Tasa de crecimiento</div>
+            </div>
+        </div>
+
+        <!-- Estado del Sistema -->
+        <h2 class="section-title">Estado del Sistema</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">
+                    <span class="status-badge" th:classappend="${cacheAvailable} ? 'status-online' : 'status-offline'"
+                          th:text="${cacheProvider}">Cache</span>
+                </div>
+                <div class="metric-label">Proveedor de Cache</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -31,6 +31,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     // 2. Todos los turnos del negocio (para FullCalendar)
     List<Appointment> findByBusinessId(Long businessId);
 
+    // 2.1 Contar todos los turnos del negocio
+    long countByBusinessId(Long businessId);
+
     // 2a. Todos los turnos ordenados por fecha desc (para tabla del dashboard con paginación client-side)
     @Query("SELECT a FROM Appointment a WHERE a.business.id = :businessId ORDER BY a.date DESC, a.time DESC")
     List<Appointment> findByBusinessIdOrderByDateDescTimeDesc(@Param("businessId") Long businessId);

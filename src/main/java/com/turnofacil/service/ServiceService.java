@@ -16,9 +16,12 @@ import java.util.List;
 public class ServiceService {
 
     private final ServiceRepository serviceRepository;
+    private final PlanLimitsService planLimitsService;
 
-    public ServiceService(ServiceRepository serviceRepository) {
+    public ServiceService(ServiceRepository serviceRepository,
+                          PlanLimitsService planLimitsService) {
         this.serviceRepository = serviceRepository;
+        this.planLimitsService = planLimitsService;
     }
 
     @Transactional(readOnly = true)
@@ -39,6 +42,10 @@ public class ServiceService {
 
     @Transactional
     public Service createService(User business, ServiceDto dto) {
+        if (!planLimitsService.canCreateService(business.getId())) {
+            throw new com.turnofacil.exception.PlanLimitExceededException(
+                    "Has alcanzado el límite de 3 servicios del plan gratuito. Actualiza tu plan para servicios ilimitados.");
+        }
         int count = serviceRepository.countByBusinessId(business.getId());
 
         Service service = new Service();
