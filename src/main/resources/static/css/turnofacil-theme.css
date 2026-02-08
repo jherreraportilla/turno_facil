@@ -563,3 +563,403 @@
 .tf-animate-slideIn {
   animation: tf-slideIn 0.3s ease-out;
 }
+
+/* ========================================
+   17. EFECTOS MODERNOS - VISUAL IMPROVEMENTS
+   ======================================== */
+
+/* --- Skeleton Loading --- */
+.tf-skeleton {
+  background: linear-gradient(90deg,
+    var(--tf-bg-secondary) 25%,
+    var(--tf-bg-tertiary) 50%,
+    var(--tf-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: tf-skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--tf-radius-md);
+}
+
+.tf-skeleton-text {
+  height: 1em;
+  width: 100%;
+  margin-bottom: 0.5em;
+}
+
+.tf-skeleton-text:last-child {
+  width: 60%;
+}
+
+.tf-skeleton-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.tf-skeleton-card {
+  height: 120px;
+  border-radius: var(--tf-radius-xl);
+}
+
+@keyframes tf-skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* --- Glass Morphism --- */
+.tf-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 116, 0.2);
+}
+
+.tf-glass-dark {
+  background: rgba(74, 63, 53, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 116, 0.3);
+  color: white;
+}
+
+/* --- Glow Effects --- */
+.tf-glow-primary {
+  box-shadow: 0 0 20px rgba(212, 175, 116, 0.4);
+}
+
+.tf-glow-success {
+  box-shadow: 0 0 20px rgba(90, 147, 103, 0.4);
+}
+
+.tf-glow-danger {
+  box-shadow: 0 0 20px rgba(196, 92, 74, 0.4);
+}
+
+/* --- Pulse Animation --- */
+@keyframes tf-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.tf-animate-pulse {
+  animation: tf-pulse 2s ease-in-out infinite;
+}
+
+/* --- Bounce Animation --- */
+@keyframes tf-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.tf-animate-bounce {
+  animation: tf-bounce 0.6s ease-in-out;
+}
+
+/* --- Scale on Hover --- */
+.tf-hover-scale {
+  transition: transform var(--tf-transition-base);
+}
+
+.tf-hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* --- Lift on Hover --- */
+.tf-hover-lift {
+  transition: transform var(--tf-transition-base), box-shadow var(--tf-transition-base);
+}
+
+.tf-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--tf-shadow-lg);
+}
+
+/* --- Focus Ring --- */
+.tf-focus-ring:focus-visible {
+  outline: 2px solid var(--tf-brand);
+  outline-offset: 2px;
+}
+
+/* --- Gradient Text --- */
+.tf-gradient-text {
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* --- Subtle Pattern Background --- */
+.tf-pattern-dots {
+  background-image: radial-gradient(circle, rgba(212, 175, 116, 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.tf-pattern-grid {
+  background-image:
+    linear-gradient(rgba(212, 175, 116, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(212, 175, 116, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* --- Divider with Gradient --- */
+.tf-divider-gradient {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--tf-brand-light), transparent);
+  border: none;
+  margin: var(--tf-space-6) 0;
+}
+
+/* --- Floating Label Input --- */
+.tf-floating-label {
+  position: relative;
+}
+
+.tf-floating-label input,
+.tf-floating-label textarea {
+  padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.tf-floating-label label {
+  position: absolute;
+  top: 50%;
+  left: var(--tf-space-4);
+  transform: translateY(-50%);
+  font-size: var(--tf-font-size-base);
+  color: var(--tf-text-tertiary);
+  pointer-events: none;
+  transition: all var(--tf-transition-base);
+}
+
+.tf-floating-label input:focus + label,
+.tf-floating-label input:not(:placeholder-shown) + label,
+.tf-floating-label textarea:focus + label,
+.tf-floating-label textarea:not(:placeholder-shown) + label {
+  top: 0.75rem;
+  transform: translateY(0);
+  font-size: var(--tf-font-size-xs);
+  color: var(--tf-brand-hover);
+}
+
+/* --- Progress Bar --- */
+.tf-progress {
+  height: 8px;
+  background: var(--tf-bg-secondary);
+  border-radius: var(--tf-radius-full);
+  overflow: hidden;
+}
+
+.tf-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  border-radius: var(--tf-radius-full);
+  transition: width var(--tf-transition-slow);
+}
+
+.tf-progress-bar-animated {
+  background: linear-gradient(90deg,
+    var(--tf-brand) 0%,
+    var(--tf-brand-light) 50%,
+    var(--tf-brand) 100%);
+  background-size: 200% 100%;
+  animation: tf-progress-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes tf-progress-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* --- Tooltip --- */
+.tf-tooltip {
+  position: relative;
+}
+
+.tf-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  background: var(--tf-text-primary);
+  color: white;
+  font-size: var(--tf-font-size-xs);
+  border-radius: var(--tf-radius-md);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--tf-transition-base);
+  z-index: var(--tf-z-tooltip);
+}
+
+.tf-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* --- Chip/Tag --- */
+.tf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tf-space-2);
+  padding: var(--tf-space-2) var(--tf-space-3);
+  background: var(--tf-bg-secondary);
+  border: 1px solid var(--tf-border-color);
+  border-radius: var(--tf-radius-full);
+  font-size: var(--tf-font-size-sm);
+  color: var(--tf-text-secondary);
+  transition: all var(--tf-transition-base);
+}
+
+.tf-chip:hover {
+  background: var(--tf-bg-tertiary);
+  border-color: var(--tf-brand-light);
+}
+
+.tf-chip-primary {
+  background: rgba(212, 175, 116, 0.15);
+  border-color: var(--tf-brand-light);
+  color: var(--tf-brand-hover);
+}
+
+.tf-chip-removable {
+  cursor: pointer;
+}
+
+.tf-chip-removable:hover {
+  border-color: var(--tf-danger);
+}
+
+/* --- Avatar --- */
+.tf-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  color: white;
+  font-weight: var(--tf-font-weight-semibold);
+  font-size: var(--tf-font-size-sm);
+}
+
+.tf-avatar-sm { width: 32px; height: 32px; font-size: var(--tf-font-size-xs); }
+.tf-avatar-lg { width: 56px; height: 56px; font-size: var(--tf-font-size-lg); }
+.tf-avatar-xl { width: 72px; height: 72px; font-size: var(--tf-font-size-xl); }
+
+.tf-avatar-group {
+  display: flex;
+}
+
+.tf-avatar-group .tf-avatar {
+  border: 2px solid white;
+  margin-left: -8px;
+}
+
+.tf-avatar-group .tf-avatar:first-child {
+  margin-left: 0;
+}
+
+/* --- Empty State --- */
+.tf-empty-state {
+  text-align: center;
+  padding: var(--tf-space-12) var(--tf-space-6);
+  color: var(--tf-text-tertiary);
+}
+
+.tf-empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: var(--tf-space-4);
+  opacity: 0.5;
+}
+
+.tf-empty-state-title {
+  font-size: var(--tf-font-size-lg);
+  font-weight: var(--tf-font-weight-semibold);
+  color: var(--tf-text-secondary);
+  margin-bottom: var(--tf-space-2);
+}
+
+.tf-empty-state-text {
+  font-size: var(--tf-font-size-sm);
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+/* --- Loading Spinner --- */
+.tf-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--tf-bg-tertiary);
+  border-top-color: var(--tf-brand);
+  border-radius: 50%;
+  animation: tf-spin 0.8s linear infinite;
+}
+
+.tf-spinner-sm { width: 16px; height: 16px; border-width: 2px; }
+.tf-spinner-lg { width: 40px; height: 40px; border-width: 4px; }
+
+@keyframes tf-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Overlay --- */
+.tf-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(74, 63, 53, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: var(--tf-z-modal-backdrop);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--tf-transition-base);
+}
+
+.tf-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* --- Scroll Snap --- */
+.tf-scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tf-scroll-snap-x > * {
+  scroll-snap-align: start;
+}
+
+/* --- Smooth Scroll --- */
+html {
+  scroll-behavior: smooth;
+}
+
+/* --- Selection Color --- */
+::selection {
+  background: rgba(212, 175, 116, 0.3);
+  color: var(--tf-text-primary);
+}
+
+/* --- Scrollbar Styling --- */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--tf-bg-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--tf-brand-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--tf-brand);
+}

@@ -2,8 +2,12 @@ package com.turnofacil.controller;
 
 import com.turnofacil.exception.ResourceNotFoundException;
 import com.turnofacil.model.BusinessConfig;
+import com.turnofacil.model.Faq;
 import com.turnofacil.model.PortfolioImage;
 import com.turnofacil.model.Service;
+import com.turnofacil.model.Testimonial;
+import com.turnofacil.repository.FaqRepository;
+import com.turnofacil.repository.TestimonialRepository;
 import com.turnofacil.service.BusinessConfigService;
 import com.turnofacil.service.PortfolioImageService;
 import com.turnofacil.service.ServiceService;
@@ -25,13 +29,19 @@ public class PublicLandingController {
     private final BusinessConfigService businessConfigService;
     private final ServiceService serviceService;
     private final PortfolioImageService portfolioImageService;
+    private final TestimonialRepository testimonialRepository;
+    private final FaqRepository faqRepository;
 
     public PublicLandingController(BusinessConfigService businessConfigService,
                                    ServiceService serviceService,
-                                   PortfolioImageService portfolioImageService) {
+                                   PortfolioImageService portfolioImageService,
+                                   TestimonialRepository testimonialRepository,
+                                   FaqRepository faqRepository) {
         this.businessConfigService = businessConfigService;
         this.serviceService = serviceService;
         this.portfolioImageService = portfolioImageService;
+        this.testimonialRepository = testimonialRepository;
+        this.faqRepository = faqRepository;
     }
 
     @GetMapping("/{slug}")
@@ -61,9 +71,17 @@ public class PublicLandingController {
             workingDaysDisplay = sb.toString();
         }
 
+        // Cargar testimonios y FAQs
+        List<Testimonial> testimonials = testimonialRepository
+                .findByBusinessIdAndActiveTrueOrderByDisplayOrderAsc(config.getUser().getId());
+        List<Faq> faqs = faqRepository
+                .findByBusinessIdAndActiveTrueOrderByDisplayOrderAsc(config.getUser().getId());
+
         model.addAttribute("config", config);
         model.addAttribute("services", services);
         model.addAttribute("portfolioImages", portfolioImages);
+        model.addAttribute("testimonials", testimonials);
+        model.addAttribute("faqs", faqs);
         model.addAttribute("workingDaysDisplay", workingDaysDisplay);
         model.addAttribute("bookingUrl", "/public/book/" + slug);
 

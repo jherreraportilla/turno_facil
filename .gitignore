@@ -34,5 +34,6 @@ build/
 
 ### Environment ###
 .env
+.env.docker
 *.env.local
 application-local.yml

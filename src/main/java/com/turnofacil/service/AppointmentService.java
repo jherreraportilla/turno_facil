@@ -9,6 +9,7 @@ import com.turnofacil.model.User;
 import com.turnofacil.repository.AppointmentRepository;
 import com.turnofacil.repository.BusinessConfigRepository;
 import com.turnofacil.repository.ServiceRepository;
+import com.turnofacil.service.whatsapp.WhatsAppService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -39,6 +40,7 @@ public class AppointmentService {
     private final ServiceRepository serviceRepo;
     private final BusinessConfigRepository businessConfigRepo;
     private final PlanLimitsService planLimitsService;
+    private final WhatsAppService whatsAppService;
 
     public AppointmentService(AppointmentRepository appointmentRepo,
                               UserService userService,
@@ -47,7 +49,8 @@ public class AppointmentService {
                               NotificationService notificationService,
                               ServiceRepository serviceRepo,
                               BusinessConfigRepository businessConfigRepo,
-                              PlanLimitsService planLimitsService) {
+                              PlanLimitsService planLimitsService,
+                              WhatsAppService whatsAppService) {
         this.appointmentRepo = appointmentRepo;
         this.userService = userService;
         this.blockedSlotService = blockedSlotService;
@@ -56,6 +59,7 @@ public class AppointmentService {
         this.serviceRepo = serviceRepo;
         this.businessConfigRepo = businessConfigRepo;
         this.planLimitsService = planLimitsService;
+        this.whatsAppService = whatsAppService;
     }
 
     // CREAR TURNO DESDE PAGINA PUBLICA
@@ -152,6 +156,26 @@ public class AppointmentService {
                 log.error("Error enviando emails de confirmacion: {}", e.getMessage());
             }
 
+            // Enviar confirmación por WhatsApp si está habilitado
+            if (config != null && config.isEnableWhatsappConfirmations()
+                    && clientPhone != null && !clientPhone.isBlank()
+                    && whatsAppService.isAvailable()) {
+                try {
+                    String formattedDateTime = date.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                            + " a las " + time.format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
+                    whatsAppService.sendAppointmentConfirmation(
+                            clientPhone,
+                            config.getBusinessName(),
+                            savedAppointment.getServiceName(),
+                            formattedDateTime,
+                            savedAppointment.getCancellationToken()
+                    );
+                    log.info("Confirmación WhatsApp enviada al cliente: {}", clientPhone);
+                } catch (Exception e) {
+                    log.warn("Error enviando WhatsApp de confirmacion: {}", e.getMessage());
+                }
+            }
+
             // Crear notificacion para el admin
             try {
                 notificationService.createNewBookingNotification(savedAppointment);
@@ -168,6 +192,7 @@ public class AppointmentService {
     /**
      * Verifica si hay solapamiento con otros turnos.
      * Turno A (inicio-fin) se solapa con Turno B si: B.inicio < A.fin AND B.fin > A.inicio
+     * Considera el buffer time configurado entre citas.
      */
     public boolean hasOverlappingAppointment(Long businessId, LocalDate date,
                                              LocalTime startTime, LocalTime endTime,
@@ -175,11 +200,17 @@ public class AppointmentService {
         List<Appointment> existingAppointments = appointmentRepo
                 .findActiveAppointmentsByDateAndBusiness(businessId, date);
 
+        // Obtener buffer time del negocio
+        int bufferMinutes = businessConfigRepo.findByUserId(businessId)
+                .map(BusinessConfig::getBufferTimeMinutes)
+                .orElse(0);
+
         return existingAppointments.stream()
                 .filter(a -> excludeId == null || !a.getId().equals(excludeId))
                 .anyMatch(a -> {
                     LocalTime existingStart = a.getTime();
-                    LocalTime existingEnd = existingStart.plusMinutes(a.getDuration());
+                    // Fin de cita + buffer time
+                    LocalTime existingEnd = existingStart.plusMinutes(a.getDuration() + bufferMinutes);
                     // Solapamiento: B.inicio < A.fin AND B.fin > A.inicio
                     return existingStart.isBefore(endTime) && existingEnd.isAfter(startTime);
                 });

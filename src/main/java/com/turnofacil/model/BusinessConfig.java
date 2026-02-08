@@ -81,6 +81,12 @@ public class BusinessConfig {
     @Column(name = "ENABLE_WHATSAPP_REMINDERS", nullable = false)
     private boolean enableWhatsappReminders = false;
 
+    @Column(name = "ENABLE_WHATSAPP_CONFIRMATIONS", nullable = false)
+    private boolean enableWhatsappConfirmations = false;
+
+    @Column(name = "BUFFER_TIME_MINUTES", nullable = false)
+    private int bufferTimeMinutes = 0; // 0, 5, 10, 15, 30 minutos entre citas
+
     @Column(name = "WEBSITE_URL")
     private String websiteUrl;
 
