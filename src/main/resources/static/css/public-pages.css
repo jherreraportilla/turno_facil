@@ -1407,3 +1407,364 @@
     font-size: 2rem;
   }
 }
+
+/* ========================================
+   LANDING - COMO FUNCIONA (HOW IT WORKS)
+   ======================================== */
+.landing-how-it-works {
+  background: linear-gradient(135deg, rgba(212, 175, 116, 0.08) 0%, rgba(169, 134, 87, 0.05) 100%);
+}
+
+.landing-steps-grid {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.landing-step {
+  flex: 1;
+  max-width: 260px;
+  text-align: center;
+  padding: 1.5rem 1rem;
+  position: relative;
+}
+
+.landing-step-number {
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--tf-brand);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(212, 175, 116, 0.4);
+}
+
+.landing-step-icon {
+  width: 80px;
+  height: 80px;
+  margin: 2rem auto 1.25rem;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid rgba(212, 175, 116, 0.2);
+  transition: all 0.3s ease;
+}
+
+.landing-step:hover .landing-step-icon {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(212, 175, 116, 0.25);
+  border-color: var(--tf-brand);
+}
+
+.landing-step-icon i {
+  font-size: 2rem;
+  color: var(--tf-brand-hover);
+}
+
+.landing-step h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--tf-text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.landing-step p {
+  font-size: 0.9rem;
+  color: var(--tf-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.landing-step-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 5rem;
+  color: var(--tf-brand);
+  font-size: 1.5rem;
+  opacity: 0.5;
+}
+
+/* ========================================
+   LANDING - TESTIMONIOS
+   ======================================== */
+.landing-testimonials {
+  background: var(--tf-bg-secondary);
+}
+
+.landing-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.landing-testimonial-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.landing-testimonial-card::before {
+  content: "\F6B0";
+  font-family: "bootstrap-icons";
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 2rem;
+  color: rgba(212, 175, 116, 0.15);
+}
+
+.landing-testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.testimonial-stars {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.testimonial-stars i {
+  color: #ffc107;
+  font-size: 1rem;
+}
+
+.testimonial-text {
+  font-size: 1rem;
+  color: var(--tf-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+  font-style: italic;
+}
+
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.testimonial-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.testimonial-author span {
+  font-weight: 600;
+  color: var(--tf-text-primary);
+}
+
+/* ========================================
+   LANDING - FAQ (PREGUNTAS FRECUENTES)
+   ======================================== */
+.landing-faq-list {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.landing-faq-item {
+  margin-bottom: 0.75rem;
+}
+
+.landing-faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: white;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--tf-text-primary);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.landing-faq-question:hover {
+  border-color: var(--tf-brand-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.landing-faq-question.active {
+  border-color: var(--tf-brand);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  background: linear-gradient(135deg, rgba(212, 175, 116, 0.08) 0%, rgba(169, 134, 87, 0.05) 100%);
+}
+
+.landing-faq-question i {
+  font-size: 1.25rem;
+  color: var(--tf-brand);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.landing-faq-question.active i {
+  transform: rotate(180deg);
+}
+
+.landing-faq-answer {
+  display: none;
+  padding: 1.25rem 1.5rem;
+  background: white;
+  border: 1px solid var(--tf-brand);
+  border-top: none;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.landing-faq-answer.show {
+  display: block;
+  animation: faqSlideDown 0.3s ease;
+}
+
+@keyframes faqSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-faq-answer p {
+  margin: 0;
+  color: var(--tf-text-secondary);
+  line-height: 1.6;
+}
+
+/* ========================================
+   LANDING - CTA FINAL
+   ======================================== */
+.landing-final-cta {
+  background: linear-gradient(135deg, var(--tf-brand) 0%, var(--tf-brand-hover) 100%);
+  padding: 4rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.landing-final-cta::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+.landing-final-cta h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 0.75rem;
+  position: relative;
+}
+
+.landing-final-cta p {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 2rem;
+  position: relative;
+}
+
+.landing-cta-btn-large {
+  padding: 1.25rem 3rem;
+  font-size: 1.2rem;
+}
+
+/* ========================================
+   LANDING - RESPONSIVE ADICIONAL
+   ======================================== */
+@media (max-width: 768px) {
+  .landing-steps-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .landing-step {
+    max-width: 100%;
+  }
+
+  .landing-step-arrow {
+    padding-top: 0;
+    transform: rotate(90deg);
+  }
+
+  .landing-testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-final-cta h2 {
+    font-size: 1.5rem;
+  }
+
+  .landing-final-cta p {
+    font-size: 1rem;
+  }
+
+  .landing-cta-btn-large {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-step-icon {
+    width: 64px;
+    height: 64px;
+  }
+
+  .landing-step-icon i {
+    font-size: 1.5rem;
+  }
+
+  .landing-testimonial-card {
+    padding: 1.5rem;
+  }
+
+  .landing-faq-question {
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .landing-faq-answer {
+    padding: 1rem 1.25rem;
+  }
+}

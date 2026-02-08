@@ -1,0 +1,98 @@
+services:
+
+  # ============================
+  # Aplicacion Spring Boot
+  # ============================
+  app:
+    build: .
+    container_name: turnofacil-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring
+      SPRING_PROFILES_ACTIVE: prod
+      # DB - usa nombres canonicos de Spring Boot para no depender de spring-dotenv
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/turnofacil_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootchangeme}
+      # JPA / Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+      # Flyway
+      SPRING_FLYWAY_ENABLED: "true"
+      SPRING_FLYWAY_BASELINE_ON_MIGRATE: "true"
+      SPRING_FLYWAY_BASELINE_VERSION: "0"
+      # Redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      REDIS_ENABLED: "true"
+      # App
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      SHOW_ERROR_DETAILS: "false"
+      SESSION_SECURE: "false"
+      THYMELEAF_CACHE: "true"
+      # Email
+      SPRING_MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-465}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      EMAIL_ENABLED: ${EMAIL_ENABLED:-true}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - turnofacil-net
+
+  # ============================
+  # MySQL 8
+  # ============================
+  mysql:
+    image: mysql:8.0
+    container_name: turnofacil-mysql
+    environment:
+      MYSQL_DATABASE: turnofacil_db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootchangeme}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - turnofacil-net
+
+  # ============================
+  # Redis 7
+  # ============================
+  redis:
+    image: redis:7-alpine
+    container_name: turnofacil-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme}
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+    networks:
+      - turnofacil-net
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  turnofacil-net:
+    driver: bridge

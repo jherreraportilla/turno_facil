@@ -86,6 +86,47 @@
     </div>
 </section>
 
+<!-- ==================== CÓMO FUNCIONA ==================== -->
+<section class="landing-section landing-how-it-works">
+    <div class="landing-container">
+        <div class="landing-section-header">
+            <h2><i class="bi bi-lightning-charge me-2"></i>Reserva en 3 simples pasos</h2>
+        </div>
+        <div class="landing-steps-grid">
+            <div class="landing-step">
+                <div class="landing-step-number">1</div>
+                <div class="landing-step-icon">
+                    <i class="bi bi-hand-index"></i>
+                </div>
+                <h3>Elige tu servicio</h3>
+                <p>Selecciona el servicio que necesitas de nuestra lista</p>
+            </div>
+            <div class="landing-step-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+            <div class="landing-step">
+                <div class="landing-step-number">2</div>
+                <div class="landing-step-icon">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+                <h3>Elige fecha y hora</h3>
+                <p>Selecciona el dia y horario que mejor te convenga</p>
+            </div>
+            <div class="landing-step-arrow">
+                <i class="bi bi-arrow-right"></i>
+            </div>
+            <div class="landing-step">
+                <div class="landing-step-number">3</div>
+                <div class="landing-step-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <h3>Confirma tu cita</h3>
+                <p>Recibiras confirmacion por email y WhatsApp</p>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- ==================== SERVICIOS ==================== -->
 <section class="landing-section" th:if="${!services.isEmpty()}">
     <div class="landing-container">
@@ -132,6 +173,27 @@
                 </div>
                 <div class="landing-gallery-caption" th:if="${image.caption}">
                     <span th:text="${image.caption}">Caption</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== TESTIMONIOS ==================== -->
+<section class="landing-section landing-testimonials" th:if="${testimonials != null && !testimonials.isEmpty()}">
+    <div class="landing-container">
+        <div class="landing-section-header">
+            <h2><i class="bi bi-chat-quote me-2"></i>Lo que dicen nuestros clientes</h2>
+        </div>
+        <div class="landing-testimonials-grid">
+            <div th:each="testimonial : ${testimonials}" class="landing-testimonial-card">
+                <div class="testimonial-stars">
+                    <i class="bi bi-star-fill" th:each="i : ${#numbers.sequence(1, testimonial.rating ?: 5)}"></i>
+                </div>
+                <p class="testimonial-text" th:text="${testimonial.text}">"Excelente servicio"</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar" th:text="${#strings.substring(testimonial.authorName, 0, 1).toUpperCase()}">J</div>
+                    <span th:text="${testimonial.authorName}">Juan Perez</span>
                 </div>
             </div>
         </div>
@@ -190,6 +252,39 @@
                 </iframe>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- ==================== FAQ ==================== -->
+<section class="landing-section landing-faq" th:if="${faqs != null && !faqs.isEmpty()}">
+    <div class="landing-container">
+        <div class="landing-section-header">
+            <h2><i class="bi bi-question-circle me-2"></i>Preguntas frecuentes</h2>
+        </div>
+        <div class="landing-faq-list">
+            <div th:each="faq, iter : ${faqs}" class="landing-faq-item">
+                <button class="landing-faq-question" type="button"
+                        th:attr="data-target='#faq-' + ${iter.index}"
+                        onclick="this.classList.toggle('active'); document.querySelector(this.dataset.target).classList.toggle('show');">
+                    <span th:text="${faq.question}">Pregunta frecuente</span>
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <div th:id="'faq-' + ${iter.index}" class="landing-faq-answer">
+                    <p th:text="${faq.answer}">Respuesta a la pregunta</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ==================== CTA FINAL ==================== -->
+<section class="landing-section landing-final-cta">
+    <div class="landing-container text-center">
+        <h2>¿Listo para reservar?</h2>
+        <p>Agenda tu cita ahora y disfruta de un servicio de calidad</p>
+        <a th:href="${bookingUrl}" class="landing-cta-btn landing-cta-btn-large">
+            <i class="bi bi-calendar-check me-2"></i>Reservar ahora
+        </a>
     </div>
 </section>
 

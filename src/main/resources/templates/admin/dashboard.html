@@ -486,6 +486,32 @@
             </h4>
         </div>
         <div class="admin-card-body">
+            <!-- Leyenda del calendario -->
+            <div class="calendar-legend mb-3">
+                <span class="legend-title"><i class="bi bi-info-circle me-1"></i>Leyenda:</span>
+                <div class="legend-items">
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #C9A227;"></span>
+                        Pendiente
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #5A9367;"></span>
+                        Completado
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #C45C4A;"></span>
+                        Cancelado
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #4A3F35;"></span>
+                        No se presentó
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color" style="background: #6B7280;"></span>
+                        Bloqueado
+                    </span>
+                </div>
+            </div>
             <div class="calendar-container">
                 <div id="calendar"></div>
             </div>
@@ -627,6 +653,52 @@
                 <button type="button" class="btn btn-admin-primary" id="confirmStatusBtn">
                     <i class="bi bi-check-circle me-2"></i>Confirmar
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalle de Bloqueo -->
+<div class="modal fade admin-modal" id="blockedSlotModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar-x me-2"></i>
+                    Horario Bloqueado
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center py-3">
+                    <div class="mb-4">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                             style="width: 80px; height: 80px; background: rgba(107, 114, 128, 0.15);">
+                            <i class="bi bi-calendar-x fs-1" style="color: #6B7280;"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold mb-2" id="blockedSlotTitle">Bloqueo</h4>
+                    <p class="text-muted mb-4" id="blockedSlotType">Tipo de bloqueo</p>
+
+                    <div class="d-flex justify-content-center gap-4 text-start">
+                        <div class="text-center">
+                            <small class="text-muted d-block mb-1">Fecha</small>
+                            <strong id="blockedSlotDate">-</strong>
+                        </div>
+                        <div class="text-center">
+                            <small class="text-muted d-block mb-1">Horario</small>
+                            <strong id="blockedSlotTime">-</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center border-0">
+                <button type="button" class="btn btn-admin-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cerrar
+                </button>
+                <a href="/admin/blocked-slots" class="btn btn-admin-primary">
+                    <i class="bi bi-gear me-2"></i>Gestionar Bloqueos
+                </a>
             </div>
         </div>
     </div>
@@ -871,6 +943,8 @@
         var rawBlockedEvents = /*[[${blockedEvents}]]*/ [];
 
         // Convertir turnos a eventos de Toast UI Calendar
+        // Usamos category 'allday' para mostrar bloques coloreados en vista mes
+        // En vista semana/día se mostrarán en la sección de todo el día
         var appointmentEvents = rawAppointments.map((a, idx) => {
             const status = a.status;
             let color = '#C9A227'; // Dorado por defecto
@@ -894,14 +968,17 @@
             const endDate = new Date(startDate.getTime() + duration * 60000);
             const endTime = endDate.toTimeString().substring(0, 8);
 
+            // Formatear hora para mostrar en el título
+            const displayTime = a.time.substring(0, 5);
+
             return {
                 id: 'appt-' + a.id,
                 calendarId: 'appointments',
-                title: a.clientName,
-                start: startDateTime,
-                end: a.date + 'T' + endTime,
+                title: displayTime + ' ' + a.clientName,
+                start: a.date,
+                end: a.date,
                 isReadOnly: true,
-                category: 'time',
+                category: 'allday',
                 backgroundColor: color,
                 borderColor: color,
                 color: '#fff',
@@ -921,7 +998,7 @@
             };
         });
 
-        // Convertir bloqueos a eventos
+        // Convertir bloqueos a eventos (usando category 'allday' para mostrar como bloques)
         var blockedEvents = rawBlockedEvents.flatMap((b, idx) => {
             const events = [];
             const startDate = new Date(b.startDate);
@@ -931,37 +1008,32 @@
                 const dateStr = d.toISOString().split('T')[0];
                 const bgColor = b.color || '#6B7280';
 
-                if (b.allDay) {
-                    // Para bloqueos de día completo
-                    events.push({
-                        id: 'blocked-' + idx + '-' + dateStr,
-                        calendarId: 'blocked',
-                        title: b.title,
-                        start: dateStr + 'T08:00:00',
-                        end: dateStr + 'T21:00:00',
-                        isAllDay: false,
-                        isReadOnly: true,
-                        category: 'time',
-                        backgroundColor: bgColor,
-                        borderColor: bgColor,
-                        color: '#ffffff',
-                        raw: { isBlocked: true, type: b.typeDisplay }
-                    });
-                } else if (b.startTime && b.endTime) {
-                    events.push({
-                        id: 'blocked-' + idx + '-' + dateStr,
-                        calendarId: 'blocked',
-                        title: b.title,
-                        start: dateStr + 'T' + b.startTime + ':00',
-                        end: dateStr + 'T' + b.endTime + ':00',
-                        isReadOnly: true,
-                        category: 'time',
-                        backgroundColor: bgColor,
-                        borderColor: bgColor,
-                        color: '#ffffff',
-                        raw: { isBlocked: true, type: b.typeDisplay }
-                    });
+                // Formatear horario para mostrar en título
+                let titleDisplay = b.title;
+                if (!b.allDay && b.startTime && b.endTime) {
+                    titleDisplay = b.startTime + '-' + b.endTime + ' ' + b.title;
                 }
+
+                events.push({
+                    id: 'blocked-' + idx + '-' + dateStr,
+                    calendarId: 'blocked',
+                    title: titleDisplay,
+                    start: dateStr,
+                    end: dateStr,
+                    isReadOnly: true,
+                    category: 'allday',
+                    backgroundColor: bgColor,
+                    borderColor: bgColor,
+                    color: '#ffffff',
+                    raw: {
+                        isBlocked: true,
+                        type: b.typeDisplay,
+                        date: dateStr,
+                        startTime: b.allDay ? '08:00' : b.startTime,
+                        endTime: b.allDay ? '21:00' : b.endTime,
+                        isAllDay: b.allDay || false
+                    }
+                });
             }
             return events;
         });
@@ -1162,7 +1234,7 @@
             const raw = event.raw || {};
 
             if (raw.isBlocked) {
-                alert('Bloqueo: ' + event.title + ' (' + raw.type + ')');
+                openBlockedSlotModal(event);
                 return;
             }
             openCalendarModal(event.title, raw);
@@ -1194,6 +1266,27 @@
         document.getElementById('whatsappLink').href = 'https://wa.me/' + cleanPhone;
 
         new bootstrap.Modal(document.getElementById('appointmentModal')).show();
+    }
+
+    function openBlockedSlotModal(event) {
+        const raw = event.raw || {};
+
+        // Formatear fecha
+        const dateStr = raw.date || '';
+        const formattedDate = formatDateSpanish(dateStr);
+
+        // Formatear horario
+        let timeDisplay = 'Todo el día';
+        if (!raw.isAllDay && raw.startTime && raw.endTime) {
+            timeDisplay = raw.startTime + ' - ' + raw.endTime;
+        }
+
+        document.getElementById('blockedSlotTitle').textContent = event.title || 'Bloqueo';
+        document.getElementById('blockedSlotType').textContent = raw.type || 'Horario no disponible';
+        document.getElementById('blockedSlotDate').textContent = formattedDate || dateStr;
+        document.getElementById('blockedSlotTime').textContent = timeDisplay;
+
+        new bootstrap.Modal(document.getElementById('blockedSlotModal')).show();
     }
 
     function formatDateSpanish(dateStr) {

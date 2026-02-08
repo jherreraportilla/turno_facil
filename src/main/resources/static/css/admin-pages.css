@@ -372,6 +372,58 @@
 /* ========================================
    9. CALENDARIO (Toast UI Calendar) - Tema Claro
    ======================================== */
+
+/* Leyenda del calendario */
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: var(--tf-bg-secondary);
+  border-radius: var(--tf-radius-lg);
+  border: 1px solid var(--tf-border-color);
+}
+
+.calendar-legend .legend-title {
+  font-weight: 600;
+  color: var(--tf-text-primary);
+  font-size: 0.9rem;
+}
+
+.calendar-legend .legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.calendar-legend .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--tf-text-secondary);
+}
+
+.calendar-legend .legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .calendar-legend {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .calendar-legend .legend-items {
+    margin-top: 0.5rem;
+  }
+}
+
 .calendar-container {
   background: #ffffff;
   border-radius: var(--tf-radius-xl);
@@ -550,95 +602,123 @@
   background: #f9fafb !important;
 }
 
-/* Estilos para eventos en vista MES - Recuadros visibles */
-.toastui-calendar-month .toastui-calendar-weekday-event-block {
-  height: auto !important;
-  min-height: 22px !important;
+/* ========================================
+   VISTA MES - EVENTOS COMO BLOQUES
+   Toast UI Calendar 2.x
+   ======================================== */
+
+/*
+ * Usamos category 'allday' para mostrar eventos como bloques coloreados.
+ * Esto funciona nativamente en Toast UI Calendar 2.x
+ */
+
+/* Eventos allday en vista mes - estilo mejorado */
+.toastui-calendar-weekday-event {
+  border-radius: 5px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
   padding: 4px 8px !important;
   margin: 2px 4px !important;
-  border-radius: 6px !important;
-  font-size: 0.8rem !important;
-  font-weight: 500 !important;
-  line-height: 1.3 !important;
-  overflow: visible !important;
-  white-space: normal !important;
+  cursor: pointer !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-.toastui-calendar-month .toastui-calendar-weekday-event-dot {
-  display: none !important;
+.toastui-calendar-weekday-event:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+  z-index: 5 !important;
 }
 
-.toastui-calendar-month .toastui-calendar-weekday-event-title {
-  display: block !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+/* Título del evento - asegurar visibilidad */
+.toastui-calendar-weekday-event-title {
+  font-weight: 600 !important;
+  color: inherit !important;
 }
 
-/* Celdas del mes con más altura para múltiples eventos */
-.toastui-calendar-month .toastui-calendar-daygrid-cell {
+/* Celdas del mes más altas para acomodar eventos */
+.toastui-calendar-daygrid-cell {
   min-height: 100px !important;
 }
 
-.toastui-calendar-month .toastui-calendar-grid-cell-date {
-  padding: 8px !important;
+/* Número del día */
+.toastui-calendar-grid-cell-date {
+  padding: 6px 8px !important;
+  font-weight: 600 !important;
 }
 
-/* Eventos en el mes - asegurar que se vean como bloques */
-.toastui-calendar-weekday-event {
-  border-radius: 6px !important;
-  padding: 3px 6px !important;
-  margin: 1px 2px !important;
-  font-weight: 500 !important;
-}
-
-/* Contenedor de eventos en cada día - permitir expansión */
-.toastui-calendar-month .toastui-calendar-weekday-events {
-  overflow: visible !important;
-  max-height: none !important;
-}
-
-/* Vista semana/día - eventos más visibles */
-.toastui-calendar-time-event {
-  border-radius: 6px !important;
-  padding: 4px 8px !important;
-  font-weight: 500 !important;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-}
-
-.toastui-calendar-time-event-container {
-  margin: 0 2px !important;
-}
-
-/* Más eventos link */
-.toastui-calendar-month-more-events {
+/* Link "más eventos" estilizado */
+.toastui-calendar-weekday-exceed-in-month {
   color: var(--tf-brand) !important;
   font-weight: 600 !important;
-  font-size: 0.75rem !important;
-  padding: 2px 6px !important;
-  background: rgba(212, 175, 116, 0.1) !important;
+  font-size: 0.8rem !important;
+  padding: 3px 8px !important;
+  background: rgba(212, 175, 116, 0.15) !important;
   border-radius: 4px !important;
   margin: 2px 4px !important;
+  cursor: pointer !important;
+  display: inline-block !important;
 }
 
-.toastui-calendar-month-more-events:hover {
-  background: rgba(212, 175, 116, 0.2) !important;
+.toastui-calendar-weekday-exceed-in-month:hover {
+  background: rgba(212, 175, 116, 0.3) !important;
 }
 
-/* Popup de más eventos */
+/* Popup de "más eventos" */
 .toastui-calendar-see-more-container {
   background: #ffffff !important;
   border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
   padding: 12px !important;
+  z-index: 1000 !important;
 }
 
-.toastui-calendar-month-event-more-title {
+.toastui-calendar-see-more-header {
   font-weight: 700 !important;
   color: var(--tf-text-primary) !important;
   padding-bottom: 8px !important;
   border-bottom: 1px solid #e5e7eb !important;
   margin-bottom: 8px !important;
+}
+
+/* Eventos en el popup de "ver más" */
+.toastui-calendar-see-more-container .toastui-calendar-weekday-event {
+  margin: 4px 0 !important;
+}
+
+/* ========================================
+   VISTA SEMANA/DÍA - EVENTOS EN TIME GRID
+   ======================================== */
+
+/* Evento en vista semana/día */
+.toastui-calendar-time-event {
+  border-radius: 6px !important;
+  padding: 6px 10px !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+  cursor: pointer !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+  overflow: hidden !important;
+}
+
+.toastui-calendar-time-event:hover {
+  transform: scale(1.02) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+  z-index: 10 !important;
+}
+
+.toastui-calendar-time-event-container {
+  margin: 0 3px !important;
+}
+
+/* Título del evento en time grid */
+.toastui-calendar-time-event .toastui-calendar-event-time,
+.toastui-calendar-time-event .toastui-calendar-event-title {
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
 @media (max-width: 768px) {
